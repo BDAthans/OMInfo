@@ -47,7 +47,7 @@ int getOmate32() {
 	GetPrivateProfileString(TEXT("System"), TEXT("PgmsDir"), TEXT("C:\\Officemate"), wPgmsDir, 255, TEXT("Omate32.ini"));
 	//ADOConnection Section
 	GetPrivateProfileString(TEXT("ADOConnection"), TEXT("ConnectThru"), TEXT("MSDE"), wConnectThru, 255, TEXT("Omate32.ini"));
-	GetPrivateProfileString(TEXT("ADOConnection"), TEXT("PgmsDir"), TEXT("C:\\Officemate\\Data"), wDatabaseName, 255, TEXT("Omate32.ini"));
+	GetPrivateProfileString(TEXT("ADOConnection"), TEXT("DatabaseName"), TEXT("OMSQLDB"), wDatabaseName, 255, TEXT("Omate32.ini"));
 	GetPrivateProfileString(TEXT("ADOConnection"), TEXT("PgmsDir"), TEXT("C:\\Officemate\\Data"), wDataSource, 255, TEXT("Omate32.ini"));
 	//Install Section
 	GetPrivateProfileString(TEXT("Install"), TEXT("PgmsDir"), TEXT("C:\\Officemate\\Data"), wSQLbuild, 255, TEXT("Omate32.ini"));
