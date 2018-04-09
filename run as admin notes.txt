@@ -1,0 +1,25 @@
+Set program to run as Administrator for all users on program:
+C:\Users\BriaAt\Desktop\testforadmin.exe
+
+
+Looked in regedit for registry keys and values and found:
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers
+
+REG_SZ type value shows:
+Name = C:\Users\BriaAt\Desktop\testforadmin.exe
+Data = RUNASADMIN
+
+
+
+
+
+
+Windows Registry Export for setting program to run as Administrator to .reg:
+
+
+
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers]
+"C:\\Users\\BriaAt\\Desktop\\testforadmin.exe"="RUNASADMIN"
+
