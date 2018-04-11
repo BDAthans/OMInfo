@@ -49,28 +49,28 @@ String rUserprofile;
 bool showLog = true;
 string runningVersion = "v1.0.0";
 
+bool run = true;
+
 int getOmate32();
-int setOMEWRunAsAdmin();
+int OMPermissions();
+int duplicateOM();
 
 void menu();
 void header();
+void adminPriv();
 void getSysInfo();
 void exit();
 void logOutput();
 
 int main()
 {
-	header();
-	if (IsUserAnAdmin() == false) { 
-		cout << String(2, '\n') << " NEED TO RUN AS ADMINISTRATOR. CONTACT IT";
-		exit(); }
-
-	getOmate32();
-
-	if (showLog == true) { logOutput(); }
-
-	menu();
-
+	adminPriv();
+	while (run == true) {
+		header();
+		getOmate32();
+		if (showLog == true) { logOutput(); }
+		menu();
+	}
 	exit();
 	return 0;
 }
@@ -80,12 +80,51 @@ void header() {
 	cout << "--------------------------------------------------------------------------------" << string(1, '\n');
 }
 
+void adminPriv() {
+	if (IsUserAnAdmin() == false) {
+		cout << String(2, '\n') << " NEED TO RUN AS ADMINISTRATOR. CONTACT IT";
+		exit();
+	}
+}
+
 void menu() {
 	cout << String(1, '\n');
 	cout << endl << setw(10) << left << "Option" << setw(15) << left << "Solutions";
-	cout << endl << "---------------------------------------------------------------------------------------------";
+	cout << endl << "--------------------------------------------------------------------------------";
 	cout << endl << setw(10) << left << "A." << setw(40) << left << "Set OM\EW Executables to run as Administrator";
-	cout << endl << setw(10) << left << "Z." << setw(40) << left << "Exit";
+	cout << endl << setw(10) << left << "Z." << setw(40) << left << "Exit" << endl << endl;
+
+	char menuopt;
+	char confirmopt;
+
+	cout << setw(10) << left << "Enter menu option from above to run solution: ";
+	cin >> menuopt;
+	menuopt = toupper(menuopt);
+
+	//If menuopt is equal to Z it exits and doesn't do solution check
+	if (menuopt != 'Z' || menuopt != 'z') {
+		cout << setw(10) << left << "Are you sure you want to run solution - " << menuopt << "? Y or N:";
+		cin >> confirmopt;
+		confirmopt = toupper(confirmopt);
+		if (confirmopt == 'N') { 
+			menu(); }
+		//Need to add check so that if confirmopt is not Y or N, it restarts 
+		if ((confirmopt != 'N' && confirmopt == 'Y') || (confirmopt == 'N' && confirmopt != 'Y'))
+		{
+			/*Further check here*/
+		}
+		else { menu(); }
+	}
+	
+	switch(menuopt)
+	{
+	case 'A' : 
+		OMPermissions();
+		break;
+	case 'Z' : 
+		exit();
+		break;
+	}
 }
 
 void getSysInfo() {
@@ -104,7 +143,8 @@ void getSysInfo() {
 
 void exit() {
 	cout << string(2, '\n');
-	system("timeout /T 4");
+	cout << setw(10) << "Closing. Press Any Key to Continue";
+	system("timeout /T 4 >NUL");
 	exit(EXIT_SUCCESS);
 }
 
@@ -192,8 +232,32 @@ int getOmate32() {
 	return 0;
 }
 
-int setOMEWRunAsAdmin() {
+int OMPermissions() {
+	/*
+	- Set Omate.exe to run as Administrator for all users
+	- Set ExamWriter.exe to run as Administrator for all users
+	- Set Login.exe to run as Administrator for all users
+	- Set Logindotnet.exe to run as Administrator for all users
+	- Set HomeOffice.exe to run as Administrator for all users
+	- Set Query.exe to run as Administrator for all users
 
+	- set folder permissions for PgmsDir
+	- set file permissions for Omate32.ini in WinDir
+	
+	- checks EnableLinkedConnections.reg value and verifies it is set correctly
+	
+	*/
 	return 0;
 }
 
+int duplicateOM() {
+	/*
+	- check for Officemate installed to more than one location???
+	- C:\Officemate or C:\Omate32, or else where
+
+	- check if duplicate Omate32.ini exists in %appdata%/../local/virtualstore
+	- check if duplicate Omate32.ini exists in %userprofile%/Windows
+
+	*/
+	return 0;
+}
