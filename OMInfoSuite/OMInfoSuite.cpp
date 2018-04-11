@@ -3,9 +3,11 @@
 #include <iomanip>
 #include <string>
 #include <algorithm>
+#include <fstream>
 #include <atlstr.h>
 #include <Shlobj.h>
 #include <Windows.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -36,25 +38,38 @@ TCHAR wSQLbuild[80];
 String SQLbuild;
 TCHAR wInstalledVersion[80];
 String InstalledVersion;
+TCHAR wBuild[80];
+String Build;
 TCHAR wServicePack[80];
 String ServicePack;
+
+String rUsername;
+String rUserprofile;
 
 bool showLog = true;
 string runningVersion = "v1.0.0";
 
 int getOmate32();
 int setOMEWRunAsAdmin();
+
+void menu();
 void header();
+void getSysInfo();
 void exit();
 void logOutput();
 
 int main()
 {
 	header();
+	if (IsUserAnAdmin() == false) { 
+		cout << String(2, '\n') << " NEED TO RUN AS ADMINISTRATOR. CONTACT IT";
+		exit(); }
+
 	getOmate32();
+
 	if (showLog == true) { logOutput(); }
-	setOMEWRunAsAdmin();
-	
+
+	menu();
 
 	exit();
 	return 0;
@@ -65,9 +80,32 @@ void header() {
 	cout << "--------------------------------------------------------------------------------" << string(1, '\n');
 }
 
+void menu() {
+	cout << String(1, '\n');
+	cout << endl << setw(10) << left << "Option" << setw(15) << left << "Solutions";
+	cout << endl << "---------------------------------------------------------------------------------------------";
+	cout << endl << setw(10) << left << "A." << setw(40) << left << "Set OM\EW Executables to run as Administrator";
+	cout << endl << setw(10) << left << "Z." << setw(40) << left << "Exit";
+}
+
+void getSysInfo() {
+	/*
+	rUsername = getenv("username");
+	rUserprofile = getenv("userprofile");
+
+	char ptr[80];
+	char *path;
+	int i = 0;
+	unsigned int len;
+	 Get the current path environment 
+	getenv_s(&len, ptr, 80, "PATH");  */
+
+}
+
 void exit() {
 	cout << string(2, '\n');
-	system("pause");
+	system("timeout /T 4");
+	exit(EXIT_SUCCESS);
 }
 
 void logOutput() {
@@ -93,6 +131,7 @@ void logOutput() {
 	cout << setw(20) << left << "DataSource       = " << left << DataSource << endl;
 	cout << setw(20) << left << "SQL_Build        = " << left << SQLbuild << endl << endl;
 	cout << setw(20) << left << "InstalledVersion = " << left << InstalledVersion << endl;
+	cout << setw(20) << left << "Build = " << left << Build << endl;
 	cout << setw(20) << left << "ServicePack      = " << left << ServicePack << endl;
 
 	//SQLbuild comparison is working
@@ -103,7 +142,7 @@ void logOutput() {
 
 	//PgmsDir comparison is not working
 	cout << endl << "Expected PgmsDir: '" << PgmsDir << "'" << endl;
-	if (PgmsDir == "C:\\OFFICEMATE") {
+	if (PgmsDir == "C:\\OFFICEMATEV14") {
 		cout << "PgmsDir is matching " << PgmsDir << endl;
 	}
 }	
@@ -112,27 +151,29 @@ int getOmate32() {
 	cout << "Gathering Information from Omate32.ini..." << string(2, '\n');
 
 	//System Section
-	GetPrivateProfileString(TEXT("System"), TEXT("WinDir"), TEXT(""), wWinDir, 255, TEXT("Omate32.ini"));
+	GetPrivateProfileString(TEXT("System"), TEXT("WinDir"), TEXT("INI NOT FOUND"), wWinDir, 255, TEXT("Omate32.ini"));
 	WinDir = wWinDir;
-	GetPrivateProfileString(TEXT("System"), TEXT("DataDir"), TEXT(""), wDataDir, 255, TEXT("Omate32.ini"));
+	GetPrivateProfileString(TEXT("System"), TEXT("DataDir"), TEXT("INI NOT FOUND"), wDataDir, 255, TEXT("Omate32.ini"));
 	DataDir = wDataDir;
-	GetPrivateProfileString(TEXT("System"), TEXT("PgmsDir"), TEXT(""), wPgmsDir, 255, TEXT("Omate32.ini"));
+	GetPrivateProfileString(TEXT("System"), TEXT("PgmsDir"), TEXT("INI NOT FOUND"), wPgmsDir, 255, TEXT("Omate32.ini"));
 	PgmsDir = wPgmsDir;
 
 	//ADOConnection Section
-	GetPrivateProfileString(TEXT("ADOConnection"), TEXT("ConnectThru"), TEXT(""), wConnectThru, 255, TEXT("Omate32.ini"));
+	GetPrivateProfileString(TEXT("ADOConnection"), TEXT("ConnectThru"), TEXT("INI NOT FOUND"), wConnectThru, 255, TEXT("Omate32.ini"));
 	ConnectThru = wConnectThru;
-	GetPrivateProfileString(TEXT("ADOConnection"), TEXT("DatabaseName"), TEXT(""), wDatabaseName, 255, TEXT("Omate32.ini"));
+	GetPrivateProfileString(TEXT("ADOConnection"), TEXT("DatabaseName"), TEXT("INI NOT FOUND"), wDatabaseName, 255, TEXT("Omate32.ini"));
 	DatabaseName = wDatabaseName;
-	GetPrivateProfileString(TEXT("ADOConnection"), TEXT("DataSource"), TEXT(""), wDataSource, 255, TEXT("Omate32.ini"));
+	GetPrivateProfileString(TEXT("ADOConnection"), TEXT("DataSource"), TEXT("INI NOT FOUND"), wDataSource, 255, TEXT("Omate32.ini"));
 	DataSource = wDataSource;
 
 	//Install Section
-	GetPrivateProfileString(TEXT("Install"), TEXT("SQL_Build"), TEXT(""), wSQLbuild, 255, TEXT("Omate32.ini"));
+	GetPrivateProfileString(TEXT("Install"), TEXT("SQL_Build"), TEXT("INI NOT FOUND"), wSQLbuild, 255, TEXT("Omate32.ini"));
 	SQLbuild = wSQLbuild;
-	GetPrivateProfileString(TEXT("Install"), TEXT("InstalledVersion"), TEXT(""), wInstalledVersion, 255, TEXT("Omate32.ini"));
+	GetPrivateProfileString(TEXT("Install"), TEXT("InstalledVersion"), TEXT("INI NOT FOUND"), wInstalledVersion, 255, TEXT("Omate32.ini"));
 	InstalledVersion = wInstalledVersion;
-	GetPrivateProfileString(TEXT("Install"), TEXT("Service Pack"), TEXT(""), wServicePack, 255, TEXT("Omate32.ini"));
+	GetPrivateProfileString(TEXT("Install"), TEXT("Build"), TEXT("INI NOT FOUND"), wBuild, 255, TEXT("Omate32.ini"));
+	Build = wBuild;
+	GetPrivateProfileString(TEXT("Install"), TEXT("Service Pack"), TEXT("INI NOT FOUND"), wServicePack, 255, TEXT("Omate32.ini"));
 	ServicePack = wServicePack;
 
 	//Converts Omate32.ini strings to UPPER case for comparison
@@ -155,3 +196,4 @@ int setOMEWRunAsAdmin() {
 
 	return 0;
 }
+

@@ -1,2 +1,3 @@
 ﻿  OMInfoSuite.cpp
-  OMInfoSuite.vcxproj -> C:\Users\BriaAt\Documents\BrianAthans\Projects\OMInfo\OMInfoSuite\OMInfo\Debug\OMInfoSuite.exe
+c:\users\bdath\projects\ominfosuite\ominfo\ominfosuite\ominfosuite.cpp(87): warning C4129: 'E': unrecognized character escape sequence
+  OMInfoSuite.vcxproj -> C:\Users\bdath\Projects\OMInfoSuite\OMInfo\Debug\OMInfoSuite.exe
