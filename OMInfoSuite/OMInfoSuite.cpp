@@ -8,6 +8,7 @@
 #include <Shlobj.h>
 #include <Windows.h>
 #include <stdlib.h>
+#include <dos.h>
 
 using namespace std;
 
@@ -46,7 +47,7 @@ String ServicePack;
 String rUsername;
 String rUserprofile;
 
-bool showLog = true;
+bool showLog = false;
 string runningVersion = "v1.0.0";
 
 bool run = true;
@@ -57,6 +58,7 @@ int duplicateOM();
 
 void menu();
 void header();
+void cls();
 void adminPriv();
 void getSysInfo();
 void exit();
@@ -66,6 +68,7 @@ int main()
 {
 	adminPriv();
 	while (run == true) {
+		cls();
 		header();
 		getOmate32();
 		if (showLog == true) { logOutput(); }
@@ -78,6 +81,20 @@ int main()
 void header() {
 	cout << "Eyefinity Officemate Suite Information and Diagnostics Tool " << runningVersion << endl;
 	cout << "--------------------------------------------------------------------------------" << string(1, '\n');
+}
+
+void cls() {
+	//cout << string(26, '\n');
+	CHAR fill = ' ';
+	COORD tl = { 0,0 };
+	CONSOLE_SCREEN_BUFFER_INFO s;
+	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	GetConsoleScreenBufferInfo(console, &s);
+	DWORD written, cells = s.dwSize.X * s.dwSize.Y;
+	FillConsoleOutputCharacter(console, fill, cells, tl, &written);
+	FillConsoleOutputAttribute(console, s.wAttributes, cells, tl, &written);
+	SetConsoleCursorPosition(console, tl);
 }
 
 void adminPriv() {
@@ -102,18 +119,19 @@ void menu() {
 	menuopt = toupper(menuopt);
 
 	//If menuopt is equal to Z it exits and doesn't do solution check
-	if (menuopt != 'Z' || menuopt != 'z') {
+	if (menuopt != 'Z') {
 		cout << setw(10) << left << "Are you sure you want to run solution - " << menuopt << "? Y or N:";
 		cin >> confirmopt;
 		confirmopt = toupper(confirmopt);
-		if (confirmopt == 'N') { 
-			menu(); }
+		if (confirmopt != 'Y') { 
+			main();;
+		}
 		//Need to add check so that if confirmopt is not Y or N, it restarts 
 		if ((confirmopt != 'N' && confirmopt == 'Y') || (confirmopt == 'N' && confirmopt != 'Y'))
 		{
 			/*Further check here*/
 		}
-		else { menu(); }
+		else { main(); }
 	}
 	
 	switch(menuopt)
@@ -144,7 +162,7 @@ void getSysInfo() {
 void exit() {
 	cout << string(2, '\n');
 	cout << setw(10) << "Closing. Press Any Key to Continue";
-	system("timeout /T 4 >NUL");
+	Sleep(2000);
 	exit(EXIT_SUCCESS);
 }
 
@@ -253,7 +271,7 @@ int OMPermissions() {
 int duplicateOM() {
 	/*
 	- check for Officemate installed to more than one location???
-	- C:\Officemate or C:\Omate32, or else where
+	- check for files in C:\Officemate or C:\Omate32, or else where
 
 	- check if duplicate Omate32.ini exists in %appdata%/../local/virtualstore
 	- check if duplicate Omate32.ini exists in %userprofile%/Windows
