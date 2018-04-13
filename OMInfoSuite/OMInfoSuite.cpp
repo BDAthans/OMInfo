@@ -47,14 +47,14 @@ String ServicePack;
 String rUsername;
 String rUserprofile;
 
-bool showLog = false;
+bool showLog = true;
 string runningVersion = "v1.0.0";
 
 bool run = true;
 
 int getOmate32();
 int OMPermissions();
-int duplicateOM();
+int duplicateINI();
 
 void menu();
 void header();
@@ -99,7 +99,8 @@ void cls() {
 
 void adminPriv() {
 	if (IsUserAnAdmin() == false) {
-		cout << String(2, '\n') << " NEED TO RUN AS ADMINISTRATOR. CONTACT IT";
+		header();
+		cout << String(2, '\n') << "NEED TO RUN AS ADMINISTRATOR. CONTACT IT";
 		exit();
 	}
 }
@@ -149,7 +150,7 @@ void getSysInfo() {
 	/*
 	rUsername = getenv("username");
 	rUserprofile = getenv("userprofile");
-
+	
 	char ptr[80];
 	char *path;
 	int i = 0;
@@ -234,7 +235,6 @@ int getOmate32() {
 	GetPrivateProfileString(TEXT("Install"), TEXT("Service Pack"), TEXT("INI NOT FOUND"), wServicePack, 255, TEXT("Omate32.ini"));
 	ServicePack = wServicePack;
 
-	//Converts Omate32.ini strings to UPPER case for comparison
 	transform(WinDir.begin(), WinDir.end(), WinDir.begin(), (int(*)(int))toupper);
 	transform(DataDir.begin(), DataDir.end(), DataDir.begin(), (int(*)(int))toupper);
 	transform(PgmsDir.begin(), PgmsDir.end(), PgmsDir.begin(), (int(*)(int))toupper);
@@ -246,6 +246,13 @@ int getOmate32() {
 	transform(SQLbuild.begin(), SQLbuild.end(), SQLbuild.begin(), (int(*)(int))toupper);
 	transform(InstalledVersion.begin(), InstalledVersion.end(), InstalledVersion.begin(), (int(*)(int))toupper);
 	transform(ServicePack.begin(), ServicePack.end(), ServicePack.begin(), (int(*)(int))toupper);
+
+	if (DataDir == "INI NOT FOUND") {
+		cout << setw(10) << left << "Omate32.ini not found in C:\Windows" << endl;
+		cout << setw(10) << left << "Please correct Omate32.ini to proceed" << endl;
+		Sleep(2000); 
+		exit();
+	}
 
 	return 0;
 }
@@ -268,7 +275,7 @@ int OMPermissions() {
 	return 0;
 }
 
-int duplicateOM() {
+int duplicateINI() {
 	/*
 	- check for Officemate installed to more than one location???
 	- check for files in C:\Officemate or C:\Omate32, or else where
