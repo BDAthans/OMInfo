@@ -53,7 +53,7 @@ string runningVersion = "v1.0.0";
 bool run = true;
 
 int getOmate32();
-int OMPermissions();
+int OMRunAsAdmin();
 int duplicateINI();
 
 void menu();
@@ -122,23 +122,18 @@ void menu() {
 	//If menuopt is equal to Z it exits and doesn't do solution check
 	if (menuopt != 'Z') {
 		cout << setw(10) << left << "Are you sure you want to run solution - " << menuopt << "? Y or N:";
-		cin >> confirmopt;
+		cin >> confirmopt; cout << endl;
 		confirmopt = toupper(confirmopt);
 		if (confirmopt != 'Y') { 
 			main();;
 		}
-		//Need to add check so that if confirmopt is not Y or N, it restarts 
-		if ((confirmopt != 'N' && confirmopt == 'Y') || (confirmopt == 'N' && confirmopt != 'Y'))
-		{
-			/*Further check here*/
-		}
-		else { main(); }
+
 	}
 	
 	switch(menuopt)
 	{
 	case 'A' : 
-		OMPermissions();
+		OMRunAsAdmin();
 		break;
 	case 'Z' : 
 		exit();
@@ -257,7 +252,7 @@ int getOmate32() {
 	return 0;
 }
 
-int OMPermissions() {
+int OMRunAsAdmin() {
 	/*
 	- Set Omate.exe to run as Administrator for all users
 	- Set ExamWriter.exe to run as Administrator for all users
@@ -271,7 +266,44 @@ int OMPermissions() {
 	
 	- checks EnableLinkedConnections.reg value and verifies it is set correctly
 	
+
+	HKEY
+		HKey;
+	LPCTSTR subk = TEXT("SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
+
+	LONG setAdmin = RegCreateKeyEx(
+		HKEY_LOCAL_MACHINE,
+		subk,
+		0,
+		NULL,
+		REG_OPTION_NON_VOLATILE,
+		KEY_ALL_ACCESS,
+		NULL,
+		&HKey,
+		NULL);
+
+	if (!ERROR_SUCCESS == true) 
+	{
+		cout << setw(10) << left << "Error Creating Registry Key..." << endl;
+		Sleep(3000);
+	}
+
+
 	*/
+	HKEY HKey;
+	LPCSTR subk = TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers");
+	LPCSTR kvalue = TEXT("C:\\Officemate\\Omate.exe");
+	LPCSTR kdata = TEXT("~ RUNASADMIN");
+
+	LONG openRunAsAdmin = RegOpenKeyEx(HKEY_LOCAL_MACHINE, subk, 0, KEY_ALL_ACCESS, &HKey);
+	if (openRunAsAdmin != ERROR_SUCCESS) { cout << setw(10) << left << "Error opening Registry Key..." << endl; }
+
+	LONG setRunAsAdmin = RegSetValueEx(HKey, kvalue, 0, REG_SZ, (LPBYTE)kdata, strlen(kdata) + 1);
+	if (setRunAsAdmin != ERROR_SUCCESS) { cout << setw(10) << left << "Error creating Registry String..." << endl; }
+
+	LONG closeRunAsAdmin = RegCloseKey(HKey);
+	if (closeRunAsAdmin != ERROR_SUCCESS) { cout << setw(10) << left << "Error closing Registry Key..." << endl; }
+	Sleep(3000);
 	return 0;
 }
 

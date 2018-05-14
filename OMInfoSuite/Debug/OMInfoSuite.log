@@ -1,4 +1,4 @@
 ﻿  OMInfoSuite.cpp
 c:\users\bdath\projects\ominfosuite\ominfo\ominfosuite\ominfosuite.cpp(112): warning C4129: 'E': unrecognized character escape sequence
-c:\users\bdath\projects\ominfosuite\ominfo\ominfosuite\ominfosuite.cpp(251): warning C4129: 'W': unrecognized character escape sequence
+c:\users\bdath\projects\ominfosuite\ominfo\ominfosuite\ominfosuite.cpp(246): warning C4129: 'W': unrecognized character escape sequence
   OMInfoSuite.vcxproj -> C:\Users\bdath\Projects\OMInfoSuite\OMInfo\Debug\OMInfoSuite.exe
