@@ -287,9 +287,8 @@ int OMRunAsAdmin() {
 		cout << setw(10) << left << "Error Creating Registry Key..." << endl;
 		Sleep(3000);
 	}
+	
 
-
-	*/
 	HKEY HKey;
 	LPCSTR subk = TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers");
 	LPCSTR kvalue = TEXT("C:\\Officemate\\Omate.exe");
@@ -303,6 +302,26 @@ int OMRunAsAdmin() {
 
 	LONG closeRunAsAdmin = RegCloseKey(HKey);
 	if (closeRunAsAdmin != ERROR_SUCCESS) { cout << setw(10) << left << "Error closing Registry Key..." << endl; }
+	*/
+	HKEY HKey;
+	LPCSTR subk = TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers");
+	LPCSTR kvalue = TEXT("C:\\Officemate\\Omate.exe");
+	LPCSTR kdata = TEXT("~ RUNASADMIN");
+	
+	if (RegOpenKey(HKEY_LOCAL_MACHINE, subk, &HKey) != ERROR_SUCCESS)
+	{ cout << setw(10) << left << "Error opening Registry Key..." << endl;}
+	else {
+
+		if (RegSetValueEx(HKey, kvalue, 0, REG_SZ, (LPBYTE)kdata, strlen(kdata) * sizeof(char)) != ERROR_SUCCESS)
+		{
+			cout << setw(10) << left << "Error writing Registry value..." << endl;
+		}
+		else { cout << setw(10) << left << "Success writing Registry value..." << endl; }
+
+		//More if RegSetValueEx to follow once it's working for the other executabes, other than Omate.exe
+	}
+
+	RegCloseKey(HKey);
 	Sleep(3000);
 	return 0;
 }
