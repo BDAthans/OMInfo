@@ -47,7 +47,7 @@ String ServicePack;
 String rUsername;
 String rUserprofile;
 
-bool showLog = true;
+bool showLog = false;
 string runningVersion = "v1.0.0";
 
 bool run = true;
@@ -71,7 +71,7 @@ int main()
 		cls();
 		header();
 		getOmate32();
-		if (showLog == true) { logOutput(); }
+		logOutput();
 		menu();
 	}
 	exit();
@@ -185,19 +185,21 @@ void logOutput() {
 	cout << setw(20) << left << "DataSource       = " << left << DataSource << endl;
 	cout << setw(20) << left << "SQL_Build        = " << left << SQLbuild << endl << endl;
 	cout << setw(20) << left << "InstalledVersion = " << left << InstalledVersion << endl;
-	cout << setw(20) << left << "Build = " << left << Build << endl;
+	cout << setw(20) << left << "Build            = " << left << Build << endl;
 	cout << setw(20) << left << "ServicePack      = " << left << ServicePack << endl;
 
 	//SQLbuild comparison is working
-	cout << endl << "Expected SQLbuild: '" << SQLbuild << "'" << endl;
-	if (SQLbuild == "12.0.2") {
-		cout << "SQLbuild is matching " << SQLbuild << endl;
-	}
+	if (showLog == true) {
+		cout << endl << "Expected SQLbuild: '" << SQLbuild << "'" << endl;
+		if (SQLbuild == "12.0.2") {
+			cout << "SQLbuild is matching " << SQLbuild << endl;
+		}
 
-	//PgmsDir comparison is not working
-	cout << endl << "Expected PgmsDir: '" << PgmsDir << "'" << endl;
-	if (PgmsDir == "C:\\OFFICEMATEV14") {
-		cout << "PgmsDir is matching " << PgmsDir << endl;
+		//PgmsDir comparison is not working
+		cout << endl << "Expected PgmsDir: '" << PgmsDir << "'" << endl;
+		if (PgmsDir == "C:\\OFFICEMATEV14") {
+			cout << "PgmsDir is matching " << PgmsDir << endl;
+		}
 	}
 }	
 
@@ -271,17 +273,6 @@ int OMRunAsAdmin() {
 		HKey;
 	LPCTSTR subk = TEXT("SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
 
-	LONG setAdmin = RegCreateKeyEx(
-		HKEY_LOCAL_MACHINE,
-		subk,
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE,
-		KEY_ALL_ACCESS,
-		NULL,
-		&HKey,
-		NULL);
-
 	if (!ERROR_SUCCESS == true) 
 	{
 		cout << setw(10) << left << "Error Creating Registry Key..." << endl;
@@ -318,7 +309,14 @@ int OMRunAsAdmin() {
 		}
 		else { cout << setw(10) << left << "Success writing Registry value..." << endl; }
 
-		//More if RegSetValueEx to follow once it's working for the other executabes, other than Omate.exe
+		/*More if RegSetValueEx to follow once it's working for the other executabes, other than Omate.exe
+		LPCSTR kvalue = TEXT("C:\\Officemate\\Login.exe");
+		if (RegSetValueEx(HKey, kvalue, 0, REG_SZ, (LPBYTE)kdata, strlen(kdata) * sizeof(char)) != ERROR_SUCCESS)
+		{
+		cout << setw(10) << left << "Error writing Registry value..." << endl;
+		}
+		else { cout << setw(10) << left << "Success writing Registry value..." << endl; }
+		*/
 	}
 
 	RegCloseKey(HKey);
