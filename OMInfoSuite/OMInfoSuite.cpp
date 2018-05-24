@@ -55,6 +55,7 @@ bool run = true;
 int getOmate32();
 int OMRunAsAdmin();
 int duplicateINI();
+void delTmpFiles();
 
 void menu();
 void header();
@@ -109,7 +110,8 @@ void menu() {
 	cout << String(1, '\n');
 	cout << endl << setw(10) << left << "Option" << setw(15) << left << "Solutions";
 	cout << endl << "--------------------------------------------------------------------------------";
-	cout << endl << setw(10) << left << "A." << setw(40) << left << "Set OM\EW Executables to run as Administrator";
+	cout << endl << setw(10) << left << "A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator";
+	cout << endl << setw(10) << left << "B." << setw(40) << left << "Delete .tmp file on C:\\ left from OM Reports";
 	cout << endl << setw(10) << left << "Z." << setw(40) << left << "Exit" << endl << endl;
 
 	char menuopt;
@@ -134,6 +136,9 @@ void menu() {
 	{
 	case 'A' : 
 		OMRunAsAdmin();
+		break;
+	case 'B' :
+		delTmpFiles();
 		break;
 	case 'Z' : 
 		exit();
@@ -267,33 +272,10 @@ int OMRunAsAdmin() {
 	- set file permissions for Omate32.ini in WinDir
 	
 	- checks EnableLinkedConnections.reg value and verifies it is set correctly
-	
 
-	HKEY
-		HKey;
-	LPCTSTR subk = TEXT("SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers");
+	*/	
 
-	if (!ERROR_SUCCESS == true) 
-	{
-		cout << setw(10) << left << "Error Creating Registry Key..." << endl;
-		Sleep(3000);
-	}
-	
 
-	HKEY HKey;
-	LPCSTR subk = TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers");
-	LPCSTR kvalue = TEXT("C:\\Officemate\\Omate.exe");
-	LPCSTR kdata = TEXT("~ RUNASADMIN");
-
-	LONG openRunAsAdmin = RegOpenKeyEx(HKEY_LOCAL_MACHINE, subk, 0, KEY_ALL_ACCESS, &HKey);
-	if (openRunAsAdmin != ERROR_SUCCESS) { cout << setw(10) << left << "Error opening Registry Key..." << endl; }
-
-	LONG setRunAsAdmin = RegSetValueEx(HKey, kvalue, 0, REG_SZ, (LPBYTE)kdata, strlen(kdata) + 1);
-	if (setRunAsAdmin != ERROR_SUCCESS) { cout << setw(10) << left << "Error creating Registry String..." << endl; }
-
-	LONG closeRunAsAdmin = RegCloseKey(HKey);
-	if (closeRunAsAdmin != ERROR_SUCCESS) { cout << setw(10) << left << "Error closing Registry Key..." << endl; }
-	*/
 	HKEY HKey;
 	LPCSTR subk = TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers");
 	LPCSTR kvalue = TEXT("C:\\Officemate\\Omate.exe");
@@ -334,4 +316,17 @@ int duplicateINI() {
 
 	*/
 	return 0;
+}
+
+void delTmpFiles()
+{	
+	cout << endl << setw(20) << left << "Deleting .tmp files on C:\\ from Reports" << endl;
+	//const char *command1 = "@echo off && cd /d C:\ && for %x IN (*.tmp) DO del %x && echo Deleted %x";
+	system("@echo on && cd C: && cd C:\\ && for %x IN (*.tmp) DO del %x && echo Deleted %x");
+	/*if (system("echo %errorlevel%") != 0)
+	{ cout << setw(20) << left << "Error Deleting .tmp on C:\\, manually goto C:\\, run del *.tmp in cmd";}
+	*/
+	cout << endl << setw(20) << left << "Finished Deleting .tmp files on root of C:\\" << endl;
+	
+	Sleep(3000);
 }
