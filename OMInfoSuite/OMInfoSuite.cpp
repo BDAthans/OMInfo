@@ -44,6 +44,7 @@ String Build;
 TCHAR wServicePack[80];
 String ServicePack;
 
+//OS Specific Variables
 String rUsername;
 String rUserprofile;
 
@@ -111,7 +112,7 @@ void menu() {
 	cout << endl << setw(10) << left << "Option" << setw(15) << left << "Solutions";
 	cout << endl << "--------------------------------------------------------------------------------";
 	cout << endl << setw(10) << left << "A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator";
-	cout << endl << setw(10) << left << "B." << setw(40) << left << "Delete .tmp file on C:\\ left from OM Reports";
+	cout << endl << setw(10) << left << "B." << setw(40) << left << "Delete .tmp files on C:\\ left from Reports";
 	cout << endl << setw(10) << left << "Z." << setw(40) << left << "Exit" << endl << endl;
 
 	char menuopt;
@@ -291,14 +292,14 @@ int OMRunAsAdmin() {
 		}
 		else { cout << setw(10) << left << "Success writing Registry value..." << endl; }
 
-		/*More if RegSetValueEx to follow once it's working for the other executabes, other than Omate.exe
+		// More if RegSetValueEx to follow once it's working for the other executabes, other than Omate.exe
+
 		LPCSTR kvalue = TEXT("C:\\Officemate\\Login.exe");
 		if (RegSetValueEx(HKey, kvalue, 0, REG_SZ, (LPBYTE)kdata, strlen(kdata) * sizeof(char)) != ERROR_SUCCESS)
 		{
 		cout << setw(10) << left << "Error writing Registry value..." << endl;
 		}
 		else { cout << setw(10) << left << "Success writing Registry value..." << endl; }
-		*/
 	}
 
 	RegCloseKey(HKey);
@@ -319,14 +320,11 @@ int duplicateINI() {
 }
 
 void delTmpFiles()
-{	
-	cout << endl << setw(20) << left << "Deleting .tmp files on C:\\ from Reports" << endl;
-	//const char *command1 = "@echo off && cd /d C:\ && for %x IN (*.tmp) DO del %x && echo Deleted %x";
-	system("@echo on && cd C: && cd C:\\ && for %x IN (*.tmp) DO del %x && echo Deleted %x");
-	/*if (system("echo %errorlevel%") != 0)
-	{ cout << setw(20) << left << "Error Deleting .tmp on C:\\, manually goto C:\\, run del *.tmp in cmd";}
-	*/
-	cout << endl << setw(20) << left << "Finished Deleting .tmp files on root of C:\\" << endl;
-	
+{
+	const char *command1 = "@echo off && cd /d C:\\ && del *.tmp";
+	cout << endl << setw(20) << left << "Deleting .tmp files, Please wait..." << endl;
+	system(command1);
+	cout 
+		<< setw(20) << left << "Finished Deleting .tmp files on C:\\" << endl;
 	Sleep(3000);
 }
