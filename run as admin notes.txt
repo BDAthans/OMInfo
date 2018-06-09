@@ -10,7 +10,8 @@ Name = C:\Users\BriaAt\Desktop\testforadmin.exe
 Data = RUNASADMIN
 
 
-
+Cmd Line for adding registry key works:
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v C:\Officemate\Omate.exe /t REG_SZ /d "~ RUNASADMIN"
 
 
 
