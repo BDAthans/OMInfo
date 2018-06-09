@@ -19,37 +19,30 @@ typedef std::wstring String;
 #endif
 
 //System Variables
-TCHAR wWinDir[80];
-String WinDir;
-TCHAR wDataDir[80];
-String DataDir;
-TCHAR wPgmsDir[80];
-String PgmsDir;
+TCHAR wWinDir[80]; String WinDir;
+TCHAR wDataDir[80]; String DataDir;
+TCHAR wPgmsDir[80]; String PgmsDir;
 
 //ADOConnection Variables
-TCHAR wConnectThru[80];
-String ConnectThru;
-TCHAR wDatabaseName[80];
-String DatabaseName;
-TCHAR wDataSource[80];
-String DataSource;
+TCHAR wConnectThru[80]; String ConnectThru;
+TCHAR wDatabaseName[80]; String DatabaseName;
+TCHAR wDataSource[80]; String DataSource;
 
 //INSTALL Variables
-TCHAR wSQLbuild[80];
-String SQLbuild;
-TCHAR wInstalledVersion[80];
-String InstalledVersion;
-TCHAR wBuild[80];
-String Build;
-TCHAR wServicePack[80];
-String ServicePack;
+TCHAR wSQLbuild[80]; String SQLbuild;
+TCHAR wInstalledVersion[80]; String InstalledVersion;
+TCHAR wBuild[80]; String Build;
+TCHAR wServicePack[80]; String ServicePack;
 
 //OS Specific Variables
-String rUsername;
-String rUserprofile;
+String rUsername; //USERNAME
+String rUserprofile; //USERPROFILE
+String rLocalAppData; //LOCALAPPDATA
+String rHostname; //COMPUTERNAME
+String rSystemRoot; //SYSTEMROOT 
 
 bool showLog = false;
-string runningVersion = "v1.0.0";
+String runningVersion = "v1.0.0";
 
 bool run = true;
 
@@ -62,13 +55,24 @@ void menu();
 void header();
 void cls();
 void adminPriv();
-void getSysInfo();
+int getSysInfo();
 void exit();
 void logOutput();
+
+/*
+	FEATURES AND NOTES: 	
+
+	- check for Officemate installed to more than one location???
+	- check for files in C:\Officemate or C:\Omate32, or else where
+
+
+*/
+
 
 int main()
 {
 	adminPriv();
+	getSysInfo();
 	while (run == true) {
 		cls();
 		header();
@@ -102,7 +106,7 @@ void cls() {
 void adminPriv() {
 	if (IsUserAnAdmin() == false) {
 		header();
-		cout << String(2, '\n') << "NEED TO RUN AS ADMINISTRATOR. CONTACT IT";
+		cout << String(2, '\n') << " NEED TO RUN AS ADMINISTRATOR. CONTACT IT";
 		exit();
 	}
 }
@@ -111,9 +115,10 @@ void menu() {
 	cout << String(1, '\n');
 	cout << endl << setw(10) << left << "Option" << setw(15) << left << "Solutions";
 	cout << endl << "--------------------------------------------------------------------------------";
-	cout << endl << setw(10) << left << "A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator";
-	cout << endl << setw(10) << left << "B." << setw(40) << left << "Delete .tmp files on C:\\ left from Reports";
-	cout << endl << setw(10) << left << "Z." << setw(40) << left << "Exit" << endl << endl;
+	cout << endl << setw(10) << left << " A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator";
+	cout << endl << setw(10) << left << " B." << setw(40) << left << "Delete .tmp files on C:\\ left from Reports";
+	cout << endl << setw(10) << left << " C." << setw(40) << left << "Check for Duplicate Omate32.ini in common folders";
+	cout << endl << setw(10) << left << " Z." << setw(40) << left << "Exit" << endl << endl;
 
 	char menuopt;
 	char confirmopt;
@@ -140,6 +145,8 @@ void menu() {
 		break;
 	case 'B' :
 		delTmpFiles();
+	case 'C' :
+		duplicateINI();
 		break;
 	case 'Z' : 
 		exit();
@@ -147,41 +154,77 @@ void menu() {
 	}
 }
 
-void getSysInfo() {
-	/*
-	rUsername = getenv("username");
-	rUserprofile = getenv("userprofile");
-	
-	char ptr[80];
-	char *path;
-	int i = 0;
-	unsigned int len;
-	 Get the current path environment 
-	getenv_s(&len, ptr, 80, "PATH");  */
+int getSysInfo() {
 
+	size_t requiredSize;
+
+	//Get rUsername 
+	char* username;
+	getenv_s(&requiredSize, NULL, 0, "username");
+	if (requiredSize == 0){ cout << setw(10) << left << "ERROR: Could not get USERNAME from environment" ;}
+	username = (char*)malloc(requiredSize * sizeof(char));
+	if (!username){ cout << setw(10) << left << "ERROR: Failed to allocate memory!\n";}
+	getenv_s(&requiredSize, username, requiredSize, "username");
+	rUsername = username;
+	//cout << setw(10) << left << "Username variable is: " << username << endl;
+	free(username); requiredSize = 0;
+
+	//Get rUserprofile 
+	char* userprofile;
+	getenv_s(&requiredSize, NULL, 0, "userprofile");
+	if (requiredSize == 0) { cout << setw(10) << left << "ERROR: Could not get USERPROFILE from environment"; }
+	userprofile = (char*)malloc(requiredSize * sizeof(char));
+	if (!userprofile) { cout << setw(10) << left << "ERROR: Failed to allocate memory!\n"; }
+	getenv_s(&requiredSize, userprofile, requiredSize, "userprofile");
+	rUserprofile = userprofile;
+	//cout << setw(10) << left << "Userprofile variable is: " << userprofile << endl;
+	free(userprofile); requiredSize = 0;
+
+	//Get rLocalAppdata 
+	char* localappdata;
+	getenv_s(&requiredSize, NULL, 0, "localappdata");
+	if (requiredSize == 0) { cout << setw(10) << left << "ERROR: Could not get LocalAppData from environment"; }
+	localappdata = (char*)malloc(requiredSize * sizeof(char));
+	if (!localappdata) { cout << setw(10) << left << "ERROR: Failed to allocate memory!\n"; }
+	getenv_s(&requiredSize, localappdata, requiredSize, "localappdata");
+	rLocalAppData = localappdata;
+	//cout << setw(10) << left << "Localappdata variable is: " << localappdata << endl;
+	free(localappdata); requiredSize = 0;
+
+	//Get rHostname 
+	char* hostname;
+	getenv_s(&requiredSize, NULL, 0, "computername");
+	if (requiredSize == 0) { cout << setw(10) << left << "ERROR: Could not get Hostname from environment"; }
+	hostname = (char*)malloc(requiredSize * sizeof(char));
+	if (!hostname) { cout << setw(10) << left << "ERROR: Failed to allocate memory!\n"; }
+	getenv_s(&requiredSize, hostname, requiredSize, "computername");
+	rHostname = hostname;
+	//cout << setw(10) << left << "Hostname variable is: " << hostname << endl;
+	free(hostname); requiredSize = 0;
+
+	//Get rSystemRoot 
+	char* systemroot;
+	getenv_s(&requiredSize, NULL, 0, "systemroot");
+	if (requiredSize == 0) { cout << setw(10) << left << "ERROR: Could not get SystemRoot from environment"; }
+	systemroot = (char*)malloc(requiredSize * sizeof(char));
+	if (!systemroot) { cout << setw(10) << left << "ERROR: Failed to allocate memory!\n"; }
+	getenv_s(&requiredSize, hostname, requiredSize, "systemroot");
+	rSystemRoot = systemroot;
+	//cout << setw(10) << left << "SystemRoot variable is: " << hostname << endl;
+	free(systemroot); requiredSize = 0;
+
+	return 0;
 }
 
 void exit() {
 	cout << string(2, '\n');
-	cout << setw(10) << "Closing. Press Any Key to Continue";
+	cout << setw(10) << "Closing ... Press Any Key to Continue";
 	Sleep(2000);
 	exit(EXIT_SUCCESS);
 }
 
 void logOutput() {
-	//Output info
-
-	/*
-	wcout << setw(20) << left << "WinDir           = " << left << wWinDir << endl;
-	wcout << setw(20) << left << "DataDir          = " << left << wDataDir << endl;
-	wcout << setw(20) << left << "PgmsDir          = " << left << wPgmsDir << endl << endl;
-	wcout << setw(20) << left << "ConnectThru      = " << left << wConnectThru << endl;
-	wcout << setw(20) << left << "DatabaseName     = " << left << wDatabaseName << endl;
-	wcout << setw(20) << left << "DataSource       = " << left << wDataSource << endl;
-	wcout << setw(20) << left << "SQL_Build        = " << left << wSQLbuild << endl << endl;
-	wcout << setw(20) << left << "InstalledVersion = " << left << wInstalledVersion << endl;
-	wcout << setw(20) << left << "ServicePack      = " << left << wServicePack << endl;
-	*/
+	//Output info             1
 	
 	cout << setw(20) << left << "WinDir           = " << left << WinDir << endl;
 	cout << setw(20) << left << "DataDir          = " << left << DataDir << endl;
@@ -251,10 +294,10 @@ int getOmate32() {
 	transform(ServicePack.begin(), ServicePack.end(), ServicePack.begin(), (int(*)(int))toupper);
 
 	if (DataDir == "INI NOT FOUND") {
-		cout << setw(10) << left << "Omate32.ini not found in C:\Windows" << endl;
-		cout << setw(10) << left << "Please correct Omate32.ini to proceed" << endl;
-		Sleep(2000); 
-		exit();
+		cout << setw(10) << left << "Omate32.ini not found in C:\\Windows. Please correct Omate32.ini to proceed" << endl;
+		cout << setw(10) << left << "Is Officemate\\ExamWriter installed on this PC? Are you cloud hosted?";
+		Sleep(7000);
+		exit(1);
 	}
 
 	return 0;
@@ -309,13 +352,31 @@ int OMRunAsAdmin() {
 
 int duplicateINI() {
 	/*
-	- check for Officemate installed to more than one location???
-	- check for files in C:\Officemate or C:\Omate32, or else where
 
 	- check if duplicate Omate32.ini exists in %appdata%/../local/virtualstore
 	- check if duplicate Omate32.ini exists in %userprofile%/Windows
 
 	*/
+
+	ifstream vs;
+	ifstream up;
+
+	String tmp = "\\virtualstore\\Omate32.ini";
+	string vspath = rLocalAppData + tmp;
+	vs.open(vspath, ios::in);
+	if (!vs.is_open()){} 
+	else { cout << setw(10) << left << "Duplicate Omate32.ini found in AppData\\Local\\VirtualStore" << endl; }
+	vs.close();
+
+	tmp = "\\Windows\\Omate32.ini";
+	string uppath = rUserprofile + tmp;
+	up.open(uppath, ios::in);
+	if (!vs.is_open()) {}
+	else { cout << setw(10) << left << "Duplicate Omate32.ini found in Users Windows Folder" << endl; }
+	up.close();
+
+
+	Sleep(2000);
 	return 0;
 }
 
