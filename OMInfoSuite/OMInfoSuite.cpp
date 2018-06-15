@@ -385,7 +385,6 @@ void delTmpFiles()
 	const char *command1 = "@echo off && cd /d C:\\ && del *.tmp";
 	cout << endl << setw(20) << left << "Deleting .tmp files, Please wait..." << endl;
 	system(command1);
-	cout 
-		<< setw(20) << left << "Finished Deleting .tmp files on C:\\" << endl;
+	cout << setw(20) << left << "Finished Deleting .tmp files on C:\\" << endl;
 	Sleep(3000);
 }
