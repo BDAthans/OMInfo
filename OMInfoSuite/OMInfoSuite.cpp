@@ -9,6 +9,8 @@
 #include <Windows.h>
 #include <stdlib.h>
 #include <dos.h>
+#include <VersionHelpers.h>
+
 
 using namespace std;
 
@@ -34,7 +36,7 @@ TCHAR wInstalledVersion[80]; String InstalledVersion;
 TCHAR wBuild[80]; String Build;
 TCHAR wServicePack[80]; String ServicePack;
 
-//OS Specific Variables
+//Windows Specific Variables
 String rUsername; //USERNAME
 String rUserprofile; //USERPROFILE
 String rLocalAppData; //LOCALAPPDATA
@@ -42,7 +44,7 @@ String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
 bool showLog = false;
-String runningVersion = "v1.0.0";
+String runningVersion = "v0.0.10";
 
 bool run = true;
 
@@ -55,6 +57,7 @@ void menu();
 void header();
 void cls();
 void adminPriv();
+void winSvrChk();
 int getSysInfo();
 void exit();
 void logOutput();
@@ -74,6 +77,7 @@ void logOutput();
 int main()
 {
 	adminPriv();
+	winSvrChk();
 	getSysInfo();
 	while (run == true) {
 		cls();
@@ -108,7 +112,18 @@ void cls() {
 void adminPriv() {
 	if (IsUserAnAdmin() == false) {
 		header();
-		cout << String(2, '\n') << " NEED TO RUN AS ADMINISTRATOR. CONTACT IT";
+		cout << String(2, '\n') << " CANNOT CONTINUE: RUN AS ADMINISTRATOR.";
+		Sleep(7000);
+		exit(5);
+	}
+}
+
+void winSvrChk() {
+
+	if (IsWindowsServer() == true) {
+		header();
+		cout << String(2, '\n') << " CANNOT CONTINUE: NOT DESIGNED FOR WINDOWS SERVER.";
+		Sleep(7000);
 		exit();
 	}
 }
@@ -117,7 +132,7 @@ void menu() {
 	cout << String(1, '\n');
 	cout << endl << setw(10) << left << "Option" << setw(15) << left << "Solutions";
 	cout << endl << "--------------------------------------------------------------------------------";
-	cout << endl << setw(10) << left << " A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator";
+	cout << endl << setw(10) << left << " A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator (NOT WORKING YET)";
 	cout << endl << setw(10) << left << " B." << setw(40) << left << "Delete .tmp files on C:\\ left from Reports";
 	cout << endl << setw(10) << left << " C." << setw(40) << left << "Check for Duplicate Omate32.ini in common folders";
 	cout << endl << setw(10) << left << " Z." << setw(40) << left << "Exit" << endl << endl;
@@ -147,6 +162,7 @@ void menu() {
 		break;
 	case 'B' :
 		delTmpFiles();
+		break;
 	case 'C' :
 		duplicateINI();
 		break;
@@ -215,6 +231,8 @@ int getSysInfo() {
 	//cout << setw(10) << left << "SystemRoot variable is: " << hostname << endl;
 	free(systemroot); requiredSize = 0;
 
+
+
 	return 0;
 }
 
@@ -255,7 +273,7 @@ void logOutput() {
 }	
 
 int getOmate32() {
-	cout << "Gathering Information from Omate32.ini..." << string(2, '\n');
+	cout << "Gathering Information from C:\\Windows\\Omate32.ini..." << string(2, '\n');
 
 	//System Section
 	GetPrivateProfileString(TEXT("System"), TEXT("WinDir"), TEXT("INI NOT FOUND"), wWinDir, 255, TEXT("Omate32.ini"));
@@ -357,26 +375,32 @@ int duplicateINI() {
 	- check if duplicate Omate32.ini exists in %appdata%/../local/virtualstore
 	- check if duplicate Omate32.ini exists in %userprofile%/Windows
 	*/
+	cls();
+	header();
+	cout << endl;
 
 	ifstream vs;
 	ifstream up;
+	int fileCount = 0;
 
 	String tmp = "\\virtualstore\\Omate32.ini";
 	string vspath = rLocalAppData + tmp;
 	vs.open(vspath, ios::in);
 	if (!vs.is_open()){} 
-	else { cout << setw(10) << left << "Duplicate Omate32.ini found in AppData\\Local\\VirtualStore" << endl; }
+	else { cout << setw(10) << left << "Duplicate Omate32.ini found in AppData\\Local\\VirtualStore" << endl; 
+	fileCount++;}
 	vs.close();
 
 	tmp = "\\Windows\\Omate32.ini";
 	string uppath = rUserprofile + tmp;
 	up.open(uppath, ios::in);
 	if (!up.is_open()) {}
-	else { cout << setw(10) << left << "Duplicate Omate32.ini found in Users Windows Folder" << endl; }
+	else { cout << setw(10) << left << "Duplicate Omate32.ini found in Users Windows Folder" << endl; 
+	fileCount++;}
 	up.close();
-
-
-	Sleep(2000);
+	
+	cout << endl << setw(10) << right << fileCount << " Duplicate Omate32.ini Files Found in Total" << endl;
+	Sleep(5000);
 	return 0;
 }
 
