@@ -63,7 +63,9 @@ void logOutput();
 	FEATURES AND NOTES: 	
 
 	- check for Officemate installed to more than one location???
-	- check for files in C:\Officemate or C:\Omate32, or else where
+	- check for files in C:\Officemate or C:\Omate32, or else where???
+	
+	NOTES: Everything is working except for OM run as Admin
 
 
 */
@@ -352,10 +354,8 @@ int OMRunAsAdmin() {
 
 int duplicateINI() {
 	/*
-
 	- check if duplicate Omate32.ini exists in %appdata%/../local/virtualstore
 	- check if duplicate Omate32.ini exists in %userprofile%/Windows
-
 	*/
 
 	ifstream vs;
@@ -371,7 +371,7 @@ int duplicateINI() {
 	tmp = "\\Windows\\Omate32.ini";
 	string uppath = rUserprofile + tmp;
 	up.open(uppath, ios::in);
-	if (!vs.is_open()) {}
+	if (!up.is_open()) {}
 	else { cout << setw(10) << left << "Duplicate Omate32.ini found in Users Windows Folder" << endl; }
 	up.close();
 
@@ -381,7 +381,7 @@ int duplicateINI() {
 }
 
 void delTmpFiles()
-{
+{	//Deletes .tmp files on root of C:\ left from running OM reports
 	const char *command1 = "@echo off && cd /d C:\\ && del *.tmp";
 	cout << endl << setw(20) << left << "Deleting .tmp files, Please wait..." << endl;
 	system(command1);
