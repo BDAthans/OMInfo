@@ -11,7 +11,6 @@
 #include <dos.h>
 #include <VersionHelpers.h>
 
-
 using namespace std;
 
 #ifndef UNICODE  
@@ -43,7 +42,7 @@ String rLocalAppData; //LOCALAPPDATA
 String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
-bool showLog = false;
+bool showLog = true;
 String runningVersion = "v0.0.10";
 
 bool run = true;
@@ -59,6 +58,7 @@ void cls();
 void adminPriv();
 void winSvrChk();
 int getSysInfo();
+void resizeWindow();
 void exit();
 void logOutput();
 
@@ -75,10 +75,12 @@ void logOutput();
 
 
 int main()
-{
+{	
+	resizeWindow();
 	adminPriv();
 	winSvrChk();
 	getSysInfo();
+
 	while (run == true) {
 		cls();
 		header();
@@ -107,6 +109,15 @@ void cls() {
 	FillConsoleOutputCharacter(console, fill, cells, tl, &written);
 	FillConsoleOutputAttribute(console, s.wAttributes, cells, tl, &written);
 	SetConsoleCursorPosition(console, tl);
+}
+
+void resizeWindow() {
+	HWND console = GetConsoleWindow();
+	RECT r;
+	GetWindowRect(console, &r);
+
+	//MoveWindow(window_handle, x, y, width, height, redraw_window);
+	MoveWindow(console, r.left, r.top, 800, 550, TRUE);
 }
 
 void adminPriv() {
@@ -230,8 +241,6 @@ int getSysInfo() {
 	rSystemRoot = systemroot;
 	//cout << setw(10) << left << "SystemRoot variable is: " << hostname << endl;
 	free(systemroot); requiredSize = 0;
-
-
 
 	return 0;
 }
@@ -407,8 +416,8 @@ int duplicateINI() {
 void delTmpFiles()
 {	//Deletes .tmp files on root of C:\ left from running OM reports
 	const char *command1 = "@echo off && cd /d C:\\ && del *.tmp";
-	cout << endl << setw(20) << left << "Deleting .tmp files, Please wait..." << endl;
+	cout << endl << setw(20) << left << "Deleting .tmp files, Please wait..." << string(2, '\n');
 	system(command1);
-	cout << setw(20) << left << "Finished Deleting .tmp files on C:\\" << endl;
+	cout << endl << setw(20) << left << "Finished Deleting .tmp files on C:\\" << endl;
 	Sleep(3000);
 }
