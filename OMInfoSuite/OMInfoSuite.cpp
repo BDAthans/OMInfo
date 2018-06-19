@@ -77,8 +77,8 @@ void logOutput();
 int main()
 {	
 	resizeWindow();
-	adminPriv();
 	winSvrChk();
+	adminPriv();
 	getSysInfo();
 
 	while (run == true) {
@@ -322,7 +322,7 @@ int getOmate32() {
 	transform(InstalledVersion.begin(), InstalledVersion.end(), InstalledVersion.begin(), (int(*)(int))toupper);
 	transform(ServicePack.begin(), ServicePack.end(), ServicePack.begin(), (int(*)(int))toupper);
 
-	if (DataDir == "INI NOT FOUND") {
+	if ((DataDir == "INI NOT FOUND") || (PgmsDir == "INI NOT FOUND")) {
 		cout << setw(10) << left << "Omate32.ini not found in C:\\Windows. Please correct Omate32.ini to proceed" << endl;
 		cout << setw(10) << left << "Is Officemate\\ExamWriter installed on this PC? Are you cloud hosted?";
 		Sleep(7000);
@@ -408,13 +408,17 @@ int duplicateINI() {
 	fileCount++;}
 	up.close();
 	
-	cout << endl << setw(10) << right << fileCount << " Duplicate Omate32.ini Files Found in Total" << endl;
+	cout << endl << setw(10) << right << fileCount << " Duplicate Omate32.ini Files Found in Total" << string(2, '\n');
 	Sleep(5000);
 	return 0;
 }
 
 void delTmpFiles()
-{	//Deletes .tmp files on root of C:\ left from running OM reports
+{	cls();
+	header();
+	cout << endl;
+	
+	//Deletes .tmp files on root of C:\ left from running OM reports
 	const char *command1 = "@echo off && cd /d C:\\ && del *.tmp";
 	cout << endl << setw(20) << left << "Deleting .tmp files, Please wait..." << string(2, '\n');
 	system(command1);
