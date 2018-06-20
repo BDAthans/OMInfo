@@ -42,8 +42,8 @@ String rLocalAppData; //LOCALAPPDATA
 String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
-bool showLog = true;
-String runningVersion = "v0.0.10";
+bool showLog = false;
+String runningVersion = "v0.0.12";
 
 bool run = true;
 
@@ -65,8 +65,10 @@ void logOutput();
 /*
 	FEATURES AND NOTES: 	
 
-	- check for Officemate installed to more than one location???
-	- check for files in C:\Officemate or C:\Omate32, or else where???
+	- check for Officemate installed to more than one location (MAYBE)
+	- check for files in C:\Officemate or C:\Omate32 (MAYBE)
+	- run all ~Reg .bat files for OM v12
+
 	
 	NOTES: Everything is working except for OM run as Admin
 
@@ -392,11 +394,11 @@ int duplicateINI() {
 	ifstream up;
 	int fileCount = 0;
 
-	String tmp = "\\virtualstore\\Omate32.ini";
+	String tmp = "\\virtualstore\\Windows\\Omate32.ini";
 	string vspath = rLocalAppData + tmp;
 	vs.open(vspath, ios::in);
 	if (!vs.is_open()){} 
-	else { cout << setw(10) << left << "Duplicate Omate32.ini found in AppData\\Local\\VirtualStore" << endl; 
+	else { cout << setw(10) << left << " - Duplicate Omate32.ini found in AppData\\Local\\VirtualStore\\Windows" << endl; 
 	fileCount++;}
 	vs.close();
 
@@ -404,11 +406,11 @@ int duplicateINI() {
 	string uppath = rUserprofile + tmp;
 	up.open(uppath, ios::in);
 	if (!up.is_open()) {}
-	else { cout << setw(10) << left << "Duplicate Omate32.ini found in Users Windows Folder" << endl; 
+	else { cout << setw(10) << left << " - Duplicate Omate32.ini found in Users Windows Folder" << endl; 
 	fileCount++;}
 	up.close();
 	
-	cout << endl << setw(10) << right << fileCount << " Duplicate Omate32.ini Files Found in Total" << string(2, '\n');
+	cout << endl << setw(10) << right << fileCount << " Duplicate Omate32.ini Files Found in Total";
 	Sleep(5000);
 	return 0;
 }
