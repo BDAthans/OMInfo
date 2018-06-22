@@ -63,16 +63,13 @@ void exit();
 void logOutput();
 
 /*
-	FEATURES AND NOTES: 	
+	FEATURES & NOTES TO ADD: 	
 
-	- check for Officemate installed to more than one location (MAYBE)
-	- check for files in C:\Officemate or C:\Omate32 (MAYBE)
+	- check for Officemate installed to more than one folder
+		(Look for file in C:\Officemate AND C:\Omate32)
 	- run all ~Reg .bat files for OM v12
-
-	
-	NOTES: Everything is working except for OM run as Admin
-
-
+	- export EnableLinkedConnections.reg and then run it for Windows 8+ only
+	- clean up old Officemate installations and move them to C:\Old Officemate Installations
 */
 
 
@@ -382,10 +379,6 @@ int OMRunAsAdmin() {
 }
 
 int duplicateINI() {
-	/*
-	- check if duplicate Omate32.ini exists in %appdata%/../local/virtualstore
-	- check if duplicate Omate32.ini exists in %userprofile%/Windows
-	*/
 	cls();
 	header();
 	cout << endl;
@@ -420,7 +413,6 @@ void delTmpFiles()
 	header();
 	cout << endl;
 	
-	//Deletes .tmp files on root of C:\ left from running OM reports
 	const char *command1 = "@echo off && cd /d C:\\ && del *.tmp";
 	cout << endl << setw(20) << left << "Deleting .tmp files, Please wait..." << string(2, '\n');
 	system(command1);
