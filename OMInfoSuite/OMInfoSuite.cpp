@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <dos.h>
 #include <VersionHelpers.h>
+#include <conio.h>
 
 using namespace std;
 
@@ -43,7 +44,7 @@ String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
 bool showLog = false;
-String runningVersion = "v0.0.12";
+String runningVersion = "v0.0.14";
 
 bool run = true;
 
@@ -55,6 +56,7 @@ void delTmpFiles();
 void menu();
 void header();
 void cls();
+void pause();
 void adminPriv();
 void winSvrChk();
 int getSysInfo();
@@ -110,6 +112,14 @@ void cls() {
 	SetConsoleCursorPosition(console, tl);
 }
 
+void pause() {
+	char a;
+	cout << string(2,'\n') << "Press any Key to Continue... ";
+	a = _getch();
+
+
+}
+
 void resizeWindow() {
 	HWND console = GetConsoleWindow();
 	RECT r;
@@ -123,7 +133,7 @@ void adminPriv() {
 	if (IsUserAnAdmin() == false) {
 		header();
 		cout << String(2, '\n') << " CANNOT CONTINUE: RUN AS ADMINISTRATOR.";
-		Sleep(7000);
+		pause();
 		exit(5);
 	}
 }
@@ -133,7 +143,7 @@ void winSvrChk() {
 	if (IsWindowsServer() == true) {
 		header();
 		cout << String(2, '\n') << " CANNOT CONTINUE: NOT DESIGNED FOR WINDOWS SERVER.";
-		Sleep(7000);
+		pause();
 		exit();
 	}
 }
@@ -245,9 +255,9 @@ int getSysInfo() {
 }
 
 void exit() {
-	cout << string(2, '\n');
-	cout << setw(10) << "Closing ... Press Any Key to Continue";
-	Sleep(2000);
+	cout << string(2, '\n') << "Press any Key to Exit... ";
+	char a;
+	a = _getch();
 	exit(EXIT_SUCCESS);
 }
 
@@ -265,6 +275,8 @@ void logOutput() {
 	cout << setw(20) << left << "Build            = " << left << Build << endl;
 	cout << setw(20) << left << "ServicePack      = " << left << ServicePack << endl;
 
+
+	//DEBUG information
 	//SQLbuild comparison is working
 	if (showLog == true) {
 		cout << endl << "Expected SQLbuild: '" << SQLbuild << "'" << endl;
@@ -324,7 +336,7 @@ int getOmate32() {
 	if ((DataDir == "INI NOT FOUND") || (PgmsDir == "INI NOT FOUND")) {
 		cout << setw(10) << left << "Omate32.ini not found in C:\\Windows. Please correct Omate32.ini to proceed" << endl;
 		cout << setw(10) << left << "Is Officemate\\ExamWriter installed on this PC? Are you cloud hosted?";
-		Sleep(7000);
+		pause();
 		exit(1);
 	}
 
@@ -374,7 +386,7 @@ int OMRunAsAdmin() {
 	}
 
 	RegCloseKey(HKey);
-	Sleep(3000);
+	pause();
 	return 0;
 }
 
@@ -387,11 +399,11 @@ int duplicateINI() {
 	ifstream up;
 	int fileCount = 0;
 
-	String tmp = "\\virtualstore\\Windows\\Omate32.ini";
+	string tmp = "\\virtualstore\\Windows\\Omate32.ini";
 	string vspath = rLocalAppData + tmp;
 	vs.open(vspath, ios::in);
 	if (!vs.is_open()){} 
-	else { cout << setw(10) << left << " - Duplicate Omate32.ini found in AppData\\Local\\VirtualStore\\Windows" << endl; 
+	else { cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in AppData\\Local\\VirtualStore\\Windows" << endl; 
 	fileCount++;}
 	vs.close();
 
@@ -399,12 +411,12 @@ int duplicateINI() {
 	string uppath = rUserprofile + tmp;
 	up.open(uppath, ios::in);
 	if (!up.is_open()) {}
-	else { cout << setw(10) << left << " - Duplicate Omate32.ini found in Users Windows Folder" << endl; 
+	else { cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in Users Windows Folder" << endl; 
 	fileCount++;}
 	up.close();
 	
-	cout << endl << setw(10) << right << fileCount << " Duplicate Omate32.ini Files Found in Total";
-	Sleep(5000);
+	cout << string(2, '\n') << setw(10) << right << " Total Duplicate Omate32.ini Files Found: " << fileCount;
+	pause();
 	return 0;
 }
 
@@ -417,5 +429,5 @@ void delTmpFiles()
 	cout << endl << setw(20) << left << "Deleting .tmp files, Please wait..." << string(2, '\n');
 	system(command1);
 	cout << endl << setw(20) << left << "Finished Deleting .tmp files on C:\\" << endl;
-	Sleep(3000);
+	pause();
 }
