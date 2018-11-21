@@ -43,8 +43,8 @@ String rLocalAppData; //LOCALAPPDATA
 String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
-bool showLog = false;
-String runningVersion = "v0.0.14";
+bool debugOn = false;
+String runningVersion = "v0.0.15";
 
 bool run = true;
 
@@ -65,7 +65,7 @@ void exit();
 void logOutput();
 
 /*
-	FEATURES & NOTES TO ADD: 	
+	FEATURES & NOTES TO ADD:
 
 	- check for Officemate installed to more than one folder
 		(Look for file in C:\Officemate AND C:\Omate32)
@@ -76,7 +76,7 @@ void logOutput();
 
 
 int main()
-{	
+{
 	resizeWindow();
 	winSvrChk();
 	adminPriv();
@@ -94,8 +94,14 @@ int main()
 }
 
 void header() {
-	cout << "Eyefinity Officemate Suite Information and Diagnostics Tool " << runningVersion << endl;
-	cout << "--------------------------------------------------------------------------------" << string(1, '\n');
+	if (debugOn == true) {
+		cout << "Eyefinity Officemate Suite Information and Diagnostics Tool " << runningVersion << " (Debug ON)" << endl;
+		cout << "--------------------------------------------------------------------------------" << string(1, '\n');
+	}
+	else {
+		cout << "Eyefinity Officemate Suite Information and Diagnostics Tool " << runningVersion << endl;
+		cout << "--------------------------------------------------------------------------------" << string(1, '\n');
+	}
 }
 
 void cls() {
@@ -114,7 +120,7 @@ void cls() {
 
 void pause() {
 	char a;
-	cout << string(2,'\n') << "Press any Key to Continue... ";
+	cout << string(2, '\n') << "Press any Key to Continue... ";
 	a = _getch();
 
 
@@ -149,8 +155,8 @@ void winSvrChk() {
 }
 
 void menu() {
-	cout << String(1, '\n');
-	cout << endl << setw(10) << left << "Option" << setw(15) << left << "Solutions";
+	cout << String(2, '\n');
+	cout << setw(10) << left << "Option" << setw(15) << left << "Solutions";
 	cout << endl << "--------------------------------------------------------------------------------";
 	cout << endl << setw(10) << left << " A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator (NOT WORKING YET)";
 	cout << endl << setw(10) << left << " B." << setw(40) << left << "Delete .tmp files on C:\\ left from Reports";
@@ -169,24 +175,24 @@ void menu() {
 		cout << setw(10) << left << "Are you sure you want to run solution - " << menuopt << "? Y or N:";
 		cin >> confirmopt; cout << endl;
 		confirmopt = toupper(confirmopt);
-		if (confirmopt != 'Y') { 
+		if (confirmopt != 'Y') {
 			main();;
 		}
 
 	}
-	
-	switch(menuopt)
+
+	switch (menuopt)
 	{
-	case 'A' : 
+	case 'A':
 		OMRunAsAdmin();
 		break;
-	case 'B' :
+	case 'B':
 		delTmpFiles();
 		break;
-	case 'C' :
+	case 'C':
 		duplicateINI();
 		break;
-	case 'Z' : 
+	case 'Z':
 		exit();
 		break;
 	}
@@ -199,9 +205,9 @@ int getSysInfo() {
 	//Get rUsername 
 	char* username;
 	getenv_s(&requiredSize, NULL, 0, "username");
-	if (requiredSize == 0){ cout << setw(10) << left << "ERROR: Could not get USERNAME from environment" ;}
+	if (requiredSize == 0) { cout << setw(10) << left << "ERROR: Could not get USERNAME from environment"; }
 	username = (char*)malloc(requiredSize * sizeof(char));
-	if (!username){ cout << setw(10) << left << "ERROR: Failed to allocate memory!\n";}
+	if (!username) { cout << setw(10) << left << "ERROR: Failed to allocate memory!\n"; }
 	getenv_s(&requiredSize, username, requiredSize, "username");
 	rUsername = username;
 	//cout << setw(10) << left << "Username variable is: " << username << endl;
@@ -263,7 +269,7 @@ void exit() {
 
 void logOutput() {
 	//Output info             1
-	
+
 	cout << setw(20) << left << "WinDir           = " << left << WinDir << endl;
 	cout << setw(20) << left << "DataDir          = " << left << DataDir << endl;
 	cout << setw(20) << left << "PgmsDir          = " << left << PgmsDir << endl << endl;
@@ -275,22 +281,7 @@ void logOutput() {
 	cout << setw(20) << left << "Build            = " << left << Build << endl;
 	cout << setw(20) << left << "ServicePack      = " << left << ServicePack << endl;
 
-
-	//DEBUG information
-	//SQLbuild comparison is working
-	if (showLog == true) {
-		cout << endl << "Expected SQLbuild: '" << SQLbuild << "'" << endl;
-		if (SQLbuild == "12.0.2") {
-			cout << "SQLbuild is matching " << SQLbuild << endl;
-		}
-
-		//PgmsDir comparison is not working
-		cout << endl << "Expected PgmsDir: '" << PgmsDir << "'" << endl;
-		if (PgmsDir == "C:\\OFFICEMATEV14") {
-			cout << "PgmsDir is matching " << PgmsDir << endl;
-		}
-	}
-}	
+}
 
 int getOmate32() {
 	cout << "Gathering Information from C:\\Windows\\Omate32.ini..." << string(2, '\n');
@@ -354,19 +345,21 @@ int OMRunAsAdmin() {
 
 	- set folder permissions for PgmsDir
 	- set file permissions for Omate32.ini in WinDir
-	
+
 	- checks EnableLinkedConnections.reg value and verifies it is set correctly
 
-	*/	
+	*/
 
 
 	HKEY HKey;
 	LPCSTR subk = TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers");
 	LPCSTR kvalue = TEXT("C:\\Officemate\\Omate.exe");
 	LPCSTR kdata = TEXT("~ RUNASADMIN");
-	
+
 	if (RegOpenKey(HKEY_LOCAL_MACHINE, subk, &HKey) != ERROR_SUCCESS)
-	{ cout << setw(10) << left << "Error opening Registry Key..." << endl;}
+	{
+		cout << setw(10) << left << "Error opening Registry Key..." << endl;
+	}
 	else {
 
 		if (RegSetValueEx(HKey, kvalue, 0, REG_SZ, (LPBYTE)kdata, strlen(kdata) * sizeof(char)) != ERROR_SUCCESS)
@@ -380,7 +373,7 @@ int OMRunAsAdmin() {
 		LPCSTR kvalue = TEXT("C:\\Officemate\\Login.exe");
 		if (RegSetValueEx(HKey, kvalue, 0, REG_SZ, (LPBYTE)kdata, strlen(kdata) * sizeof(char)) != ERROR_SUCCESS)
 		{
-		cout << setw(10) << left << "Error writing Registry value..." << endl;
+			cout << setw(10) << left << "Error writing Registry value..." << endl;
 		}
 		else { cout << setw(10) << left << "Success writing Registry value..." << endl; }
 	}
@@ -402,29 +395,34 @@ int duplicateINI() {
 	string tmp = "\\virtualstore\\Windows\\Omate32.ini";
 	string vspath = rLocalAppData + tmp;
 	vs.open(vspath, ios::in);
-	if (!vs.is_open()){} 
-	else { cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in AppData\\Local\\VirtualStore\\Windows" << endl; 
-	fileCount++;}
+	if (!vs.is_open()) {}
+	else {
+		cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in AppData\\Local\\VirtualStore\\Windows" << endl;
+		fileCount++;
+	}
 	vs.close();
 
 	tmp = "\\Windows\\Omate32.ini";
 	string uppath = rUserprofile + tmp;
 	up.open(uppath, ios::in);
 	if (!up.is_open()) {}
-	else { cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in Users Windows Folder" << endl; 
-	fileCount++;}
+	else {
+		cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in Users Windows Folder" << endl;
+		fileCount++;
+	}
 	up.close();
-	
+
 	cout << string(2, '\n') << setw(10) << right << " Total Duplicate Omate32.ini Files Found: " << fileCount;
 	pause();
 	return 0;
 }
 
 void delTmpFiles()
-{	cls();
+{
+	cls();
 	header();
 	cout << endl;
-	
+
 	const char *command1 = "@echo off && cd /d C:\\ && del *.tmp";
 	cout << endl << setw(20) << left << "Deleting .tmp files, Please wait..." << string(2, '\n');
 	system(command1);
