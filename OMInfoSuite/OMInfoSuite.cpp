@@ -44,7 +44,7 @@ String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
 bool debugOn = false;
-String runningVersion = "v0.0.15";
+String runningVersion = "v0.0.16";
 
 bool run = true;
 
