@@ -60,6 +60,7 @@ void pause();
 void adminPriv();
 void winSvrChk();
 int getSysInfo();
+string curDir();
 void resizeWindow();
 void exit();
 void logOutput();
@@ -260,6 +261,13 @@ int getSysInfo() {
 	return 0;
 }
 
+string curDir() {
+	char buffer[MAX_PATH];
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	string::size_type pos = string(buffer).find_last_of("\\/");
+	return string(buffer).substr(0, pos);
+}
+
 void exit() {
 	cout << string(2, '\n') << "Press any Key to Exit... ";
 	char a;
@@ -335,6 +343,17 @@ int getOmate32() {
 }
 
 int OMRunAsAdmin() {
+	fstream SetRunAsAdmin;
+	string filenamepath = curDir() + "\\SetRunAsAdmin.reg";
+	SetRunAsAdmin.open(filenamepath, fstream::app);
+	SetRunAsAdmin << "Windows Registry Editor Version 5.00\n";
+	SetRunAsAdmin << " \n";
+	SetRunAsAdmin << "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers]\n";
+	SetRunAsAdmin << "\"" + PgmsDir + "\\omate.exe\"=\"RUNASADMIN\"";
+
+	SetRunAsAdmin.close();
+
+
 	/*
 	- Set Omate.exe to run as Administrator for all users
 	- Set ExamWriter.exe to run as Administrator for all users
@@ -348,7 +367,7 @@ int OMRunAsAdmin() {
 
 	- checks EnableLinkedConnections.reg value and verifies it is set correctly
 
-	*/
+	
 
 
 	HKEY HKey;
@@ -380,6 +399,8 @@ int OMRunAsAdmin() {
 
 	RegCloseKey(HKey);
 	pause();
+	*/
+
 	return 0;
 }
 
