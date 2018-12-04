@@ -11,6 +11,7 @@
 #include <dos.h>
 #include <VersionHelpers.h>
 #include <conio.h>
+#include <direct.h>
 
 using namespace std;
 
@@ -343,6 +344,9 @@ int getOmate32() {
 }
 
 int OMRunAsAdmin() {
+	// Output to console that .reg file is being written to folder in pgmsdir
+	// Still need to determine name of folder to reside in PgmsDir
+
 
 	string regPgmsDir = PgmsDir;
 	int strLength = regPgmsDir.length();
@@ -359,9 +363,19 @@ int OMRunAsAdmin() {
 		}
 	}
 
+
+	// Need to check if the directory exists first before creating it using the code below
+	/*
+	string OMInfoSuiteDir = PgmsDir + "\\OMInfoSuite";
+	char *updatedDir = new char[OMInfoSuiteDir.length() + 1];
+	strcpy(updatedDir, OMInfoSuiteDir.c_str());
+	mkdir(updatedDir);
+	*/
+
 	// Possibly change the .reg file to be saved in a folder in the Officemate PgmsDir??? that way it could be run manually at a later time or if errored.
 	fstream SetRunAsAdmin;
 	string filenamepath = curDir() + "\\SetRunAsAdmin.reg";
+	//string filenamepath = PgmsDir  +  "\\OMInfoSuite\\SetRunAsAdmin.reg";
 	SetRunAsAdmin.open(filenamepath, fstream::out);
 	SetRunAsAdmin << "Windows Registry Editor Version 5.00\n";
 	SetRunAsAdmin << " \n";
