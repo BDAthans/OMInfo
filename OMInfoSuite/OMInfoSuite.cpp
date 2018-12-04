@@ -159,7 +159,7 @@ void menu() {
 	cout << String(2, '\n');
 	cout << setw(10) << left << "Option" << setw(15) << left << "Solutions";
 	cout << endl << "--------------------------------------------------------------------------------";
-	cout << endl << setw(10) << left << " A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator (NOT WORKING YET)";
+	cout << endl << setw(10) << left << " A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator (CURRENTLY WRITES .REG FILES)";
 	cout << endl << setw(10) << left << " B." << setw(40) << left << "Delete .tmp files on C:\\ left from Reports";
 	cout << endl << setw(10) << left << " C." << setw(40) << left << "Check for Duplicate Omate32.ini in common folders";
 	cout << endl << setw(10) << left << " Z." << setw(40) << left << "Exit" << endl << endl;
@@ -343,62 +343,45 @@ int getOmate32() {
 }
 
 int OMRunAsAdmin() {
+
+	string regPgmsDir = PgmsDir;
+	int strLength = regPgmsDir.length();
+
+	int x; int pos = 0;
+	size_t pos1 = 0, pos2 = 0;
+	for (x = 0; x < strLength; x++) {
+		pos1 = 0;
+		pos1 = regPgmsDir.find("\\", pos, 1);
+		pos2 = regPgmsDir.find("\\\\", pos, 2);
+		if (pos1 != pos2) {
+			pos = pos1 + 2;
+			regPgmsDir.replace(pos1, 1, "\\\\");
+		}
+	}
+
+	// Possibly change the .reg file to be saved in a folder in the Officemate PgmsDir??? that way it could be run manually at a later time or if errored.
 	fstream SetRunAsAdmin;
 	string filenamepath = curDir() + "\\SetRunAsAdmin.reg";
-	SetRunAsAdmin.open(filenamepath, fstream::app);
+	SetRunAsAdmin.open(filenamepath, fstream::out);
 	SetRunAsAdmin << "Windows Registry Editor Version 5.00\n";
 	SetRunAsAdmin << " \n";
 	SetRunAsAdmin << "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers]\n";
-	SetRunAsAdmin << "\"" + PgmsDir + "\\omate.exe\"=\"RUNASADMIN\"";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\examwriter.exe\"=\"RUNASADMIN\"\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\homeoffice.exe\"=\"RUNASADMIN\"\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\login.exe\"=\"RUNASADMIN\"\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\logindotnet.exe\"=\"RUNASADMIN\"\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\omate.exe\"=\"RUNASADMIN\"\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\query.exe\"=\"RUNASADMIN\"\n";
 
 	SetRunAsAdmin.close();
 
 
 	/*
-	- Set Omate.exe to run as Administrator for all users
-	- Set ExamWriter.exe to run as Administrator for all users
-	- Set Login.exe to run as Administrator for all users
-	- Set Logindotnet.exe to run as Administrator for all users
-	- Set HomeOffice.exe to run as Administrator for all users
-	- Set Query.exe to run as Administrator for all users
-
+	New Function ???
 	- set folder permissions for PgmsDir
 	- set file permissions for Omate32.ini in WinDir
 
 	- checks EnableLinkedConnections.reg value and verifies it is set correctly
-
-	
-
-
-	HKEY HKey;
-	LPCSTR subk = TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers");
-	LPCSTR kvalue = TEXT("C:\\Officemate\\Omate.exe");
-	LPCSTR kdata = TEXT("~ RUNASADMIN");
-
-	if (RegOpenKey(HKEY_LOCAL_MACHINE, subk, &HKey) != ERROR_SUCCESS)
-	{
-		cout << setw(10) << left << "Error opening Registry Key..." << endl;
-	}
-	else {
-
-		if (RegSetValueEx(HKey, kvalue, 0, REG_SZ, (LPBYTE)kdata, strlen(kdata) * sizeof(char)) != ERROR_SUCCESS)
-		{
-			cout << setw(10) << left << "Error writing Registry value..." << endl;
-		}
-		else { cout << setw(10) << left << "Success writing Registry value..." << endl; }
-
-		// More if RegSetValueEx to follow once it's working for the other executabes, other than Omate.exe
-
-		LPCSTR kvalue = TEXT("C:\\Officemate\\Login.exe");
-		if (RegSetValueEx(HKey, kvalue, 0, REG_SZ, (LPBYTE)kdata, strlen(kdata) * sizeof(char)) != ERROR_SUCCESS)
-		{
-			cout << setw(10) << left << "Error writing Registry value..." << endl;
-		}
-		else { cout << setw(10) << left << "Success writing Registry value..." << endl; }
-	}
-
-	RegCloseKey(HKey);
-	pause();
 	*/
 
 	return 0;
@@ -416,7 +399,7 @@ int duplicateINI() {
 	string tmp = "\\virtualstore\\Windows\\Omate32.ini";
 	string vspath = rLocalAppData + tmp;
 	vs.open(vspath, ios::in);
-	if (!vs.is_open()) {}
+	if (!vs.is_open()) {/*Code goes here that is executed if file note found in LocalAppData\virtualstore\Windows folder*/ }
 	else {
 		cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in AppData\\Local\\VirtualStore\\Windows" << endl;
 		fileCount++;
@@ -426,7 +409,7 @@ int duplicateINI() {
 	tmp = "\\Windows\\Omate32.ini";
 	string uppath = rUserprofile + tmp;
 	up.open(uppath, ios::in);
-	if (!up.is_open()) {}
+	if (!up.is_open()) {/*Code goes here that is executed if file note found in Userprofile\Windows folder*/}
 	else {
 		cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in Users Windows Folder" << endl;
 		fileCount++;
