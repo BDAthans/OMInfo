@@ -44,7 +44,7 @@ String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
 bool debugOn = false;
-String runningVersion = "v0.0.16";
+String runningVersion = "v0.0.17";
 
 bool run = true;
 
@@ -159,7 +159,7 @@ void menu() {
 	cout << String(2, '\n');
 	cout << setw(10) << left << "Option" << setw(15) << left << "Solutions";
 	cout << endl << "--------------------------------------------------------------------------------";
-	cout << endl << setw(10) << left << " A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator (CURRENTLY WRITES .REG FILES)";
+	cout << endl << setw(10) << left << " A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator (WRITES .REG)";
 	cout << endl << setw(10) << left << " B." << setw(40) << left << "Delete .tmp files on C:\\ left from Reports";
 	cout << endl << setw(10) << left << " C." << setw(40) << left << "Check for Duplicate Omate32.ini in common folders";
 	cout << endl << setw(10) << left << " Z." << setw(40) << left << "Exit" << endl << endl;
