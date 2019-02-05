@@ -44,8 +44,8 @@ String rLocalAppData; //LOCALAPPDATA
 String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
-bool debugOn = false;
-String runningVersion = "v0.0.17";
+bool debugOn = true;
+String runningVersion = "v0.0.19";
 
 bool run = true;
 
@@ -53,6 +53,9 @@ int getOmate32();
 int OMRunAsAdmin();
 int duplicateINI();
 void delTmpFiles();
+void runBatchFiles();
+void cleanupOM();
+void enableLinkedConnections();
 
 void menu();
 void header();
@@ -71,7 +74,6 @@ void logOutput();
 
 	- check for Officemate installed to more than one folder
 		(Look for file in C:\Officemate AND C:\Omate32)
-	- run all ~Reg .bat files for OM v12
 	- export EnableLinkedConnections.reg and then run it for Windows 8+ only
 	- clean up old Officemate installations and move them to C:\Old Officemate Installations
 */
@@ -157,13 +159,17 @@ void winSvrChk() {
 }
 
 void menu() {
+	int x = 8;
 	cout << String(2, '\n');
-	cout << setw(10) << left << "Option" << setw(15) << left << "Solutions";
+	cout << setw(8) << left << "Option" << setw(15) << left << "Solutions";
 	cout << endl << "--------------------------------------------------------------------------------";
-	cout << endl << setw(10) << left << " A." << setw(40) << left << "Set OM\\EW Executables to run as Administrator (WRITES .REG)";
-	cout << endl << setw(10) << left << " B." << setw(40) << left << "Delete .tmp files on C:\\ left from Reports";
-	cout << endl << setw(10) << left << " C." << setw(40) << left << "Check for Duplicate Omate32.ini in common folders";
-	cout << endl << setw(10) << left << " Z." << setw(40) << left << "Exit" << endl << endl;
+	cout << endl << setw(x) << left << " A." << setw(40) << left << "Create SetRunAsAdmin.reg to set all main OM executables to run as Admin";
+	cout << endl << setw(x) << left << " B." << setw(40) << left << "Delete .tmp files on C:\\ left from Reports";
+	cout << endl << setw(x) << left << " C." << setw(40) << left << "Check for Duplicate Omate32.ini in common folders";
+	cout << endl << setw(x) << left << " D." << setw(40) << left << "Run all ~Reg*.bat files located in Officemate Directory";
+	cout << endl << setw(x) << left << " E." << setw(40) << left << "Clean up Officemate Installations to C:\\Old Officemate Installations";
+	cout << endl << setw(x) << left << " F." << setw(40) << left << "Create EnableLinkedConnections.reg to merge mapped drive permissions";
+	cout << endl << setw(x) << left << " Z." << setw(40) << left << "Exit" << endl << endl;
 
 	char menuopt;
 	char confirmopt;
@@ -193,6 +199,12 @@ void menu() {
 		break;
 	case 'C':
 		duplicateINI();
+		break;
+	case 'D':
+		runBatchFiles();
+		break;
+	case 'E':
+		cleanupOM();
 		break;
 	case 'Z':
 		exit();
@@ -364,7 +376,7 @@ int OMRunAsAdmin() {
 	}
 
 
-	// Need to check if the directory exists first before creating it using the code below
+	// Need to check if the directory exists first before creating it which uses the code below
 	/*
 	string OMInfoSuiteDir = PgmsDir + "\\OMInfoSuite";
 	char *updatedDir = new char[OMInfoSuiteDir.length() + 1];
@@ -446,4 +458,32 @@ void delTmpFiles()
 	system(command1);
 	cout << endl << setw(20) << left << "Finished Deleting .tmp files on C:\\" << endl;
 	pause();
+}
+
+void runBatchFiles() {
+	//Runs all ~Reg batch files located in PgmsDir
+}
+
+void cleanupOM() {
+	/*Cleanup OM installs to C:\Old Officemate Installations
+	 
+
+	-- Current Batch
+	if not exist "C:\Old Officemate Installations" mkdir "C:\Old Officemate Installations" & 
+	if exist C:\Officemate move C:\Officemate "C:\Old Officemate Installations" & 
+	move C:\Windows\omate32.ini "C:\Old Officemate Installations" & 
+	if exist C:\Omate32 move C:\Omate32 "C:\Old Officemate Installations"
+
+	*/
+}
+
+void enableLinkedConnections() {
+	/* Exports EnableLinkedConnections.reg
+
+	Example file:
+	Windows Registry Editor Version 5.00
+
+	[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+	"EnableLinkedConnections"=dword:00000001
+	*/
 }
