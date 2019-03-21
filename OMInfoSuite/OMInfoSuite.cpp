@@ -13,6 +13,14 @@
 #include <conio.h>
 #include <direct.h>
 
+#include <odbcinst.h>
+#include <sql.h>
+#include <sqlext.h>
+#include <sqltypes.h>
+#include <sqlucode.h>
+#include <msdasql.h>
+#include <msdadc.h>
+
 using namespace std;
 
 #ifndef UNICODE  
@@ -44,8 +52,8 @@ String rLocalAppData; //LOCALAPPDATA
 String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
-bool debugOn = true;
-String runningVersion = "v0.0.19";
+bool debugOn = false;
+String runningVersion = "v0.0.42";
 
 bool run = true;
 
@@ -54,10 +62,10 @@ int OMRunAsAdmin();
 int duplicateINI();
 void delTmpFiles();
 void runBatchFiles();
-void cleanupOM();
 void enableLinkedConnections();
 
 void menu();
+void SQLmenu();
 void header();
 void cls();
 void pause();
@@ -69,13 +77,15 @@ void resizeWindow();
 void exit();
 void logOutput();
 
+void showSQLErrorMsg(unsigned int handleType, const SQLHANDLE& handle);
+void OMUserLoginTest();
+void clearLogonInfo();
+
 /*
 	FEATURES & NOTES TO ADD:
 
-	- check for Officemate installed to more than one folder
-		(Look for file in C:\Officemate AND C:\Omate32)
-	- export EnableLinkedConnections.reg and then run it for Windows 8+ only
-	- clean up old Officemate installations and move them to C:\Old Officemate Installations
+- set folder permissions for PgmsDir
+- set file permissions for Omate32.ini in WinDir
 */
 
 
@@ -109,7 +119,7 @@ void header() {
 }
 
 void cls() {
-	//cout << string(26, '\n');
+
 	CHAR fill = ' ';
 	COORD tl = { 0,0 };
 	CONSOLE_SCREEN_BUFFER_INFO s;
@@ -164,11 +174,72 @@ void menu() {
 	cout << setw(8) << left << "Option" << setw(15) << left << "Solutions";
 	cout << endl << "--------------------------------------------------------------------------------";
 	cout << endl << setw(x) << left << " A." << setw(40) << left << "Create SetRunAsAdmin.reg to set all main OM executables to run as Admin";
-	cout << endl << setw(x) << left << " B." << setw(40) << left << "Delete .tmp files on C:\\ left from Reports";
+	cout << endl << setw(x) << left << " B." << setw(40) << left << "Create EnableLinkedConnections.reg to merge mapped drive permissions";
 	cout << endl << setw(x) << left << " C." << setw(40) << left << "Check for Duplicate Omate32.ini in common folders";
-	cout << endl << setw(x) << left << " D." << setw(40) << left << "Run all ~Reg*.bat files located in Officemate Directory";
-	cout << endl << setw(x) << left << " E." << setw(40) << left << "Clean up Officemate Installations to C:\\Old Officemate Installations";
-	cout << endl << setw(x) << left << " F." << setw(40) << left << "Create EnableLinkedConnections.reg to merge mapped drive permissions";
+	cout << endl << setw(x) << left << " D." << setw(40) << left << "Delete .tmp files on root of C:\\ left from running Reports";
+	cout << endl << setw(x) << left << " E." << setw(40) << left << "Run all ~Reg*.bat files located in Officemate Directory (v12 and Below)";
+	cout << endl << setw(x) << left << " F." << setw(40) << left << "Test OM_USER and SA connection and login to OfficeMate SQL Database";
+	cout << endl;
+	cout << endl << setw(x) << left << " S." << setw(40) << left << "Enter Menu for SQL Queries and Fixes";
+	cout << endl;
+	cout << endl << setw(x) << left << " Z." << setw(40) << left << "Exit" << endl << endl;
+
+	char menuopt;
+	char confirmopt;
+
+	cout << setw(10) << left << "Enter menu option from above to run solution: ";
+	cin >> menuopt;
+	menuopt = toupper(menuopt);
+	cout << endl;
+
+	if (menuopt != 'Z') {
+		cout << setw(10) << left << "Are you sure you want to run solution - " << menuopt << "? Y or N:";
+		cin >> confirmopt; cout << endl;
+		confirmopt = toupper(confirmopt);
+		if (confirmopt != 'Y') {
+			main();;
+		}
+	}
+
+	switch (menuopt)
+	{
+	case 'A':
+		OMRunAsAdmin();
+		break;
+	case 'B':
+		enableLinkedConnections();
+		break;
+	case 'C':
+		duplicateINI();
+		break;
+	case 'D':
+		delTmpFiles();
+		break;
+	case 'E':
+		runBatchFiles();
+		break;
+	case 'F':
+		OMUserLoginTest();
+		break;
+	case 'S':
+		SQLmenu();
+		break;
+	case 'Z':
+		exit();
+		break;
+	}
+}
+
+void SQLmenu() {
+	cls();
+	header();
+
+	int x = 8;
+	cout << left << setw(10) << "SQL Queries and Fixes Menu" << String(3,'\n'); 
+	cout << setw(8) << left << "Option" << setw(15) << left << "Solutions";
+	cout << endl << "--------------------------------------------------------------------------------";
+	cout << endl << setw(x) << left << " A." << setw(40) << left << "Clear User Seat Count (ClearLogonInfo)";
+	cout << endl;
 	cout << endl << setw(x) << left << " Z." << setw(40) << left << "Exit" << endl << endl;
 
 	char menuopt;
@@ -178,38 +249,22 @@ void menu() {
 	cin >> menuopt;
 	menuopt = toupper(menuopt);
 
-	//If menuopt is equal to Z it exits and doesn't do solution check
 	if (menuopt != 'Z') {
 		cout << setw(10) << left << "Are you sure you want to run solution - " << menuopt << "? Y or N:";
 		cin >> confirmopt; cout << endl;
 		confirmopt = toupper(confirmopt);
 		if (confirmopt != 'Y') {
-			main();;
+			SQLmenu();;
 		}
-
 	}
 
-	switch (menuopt)
-	{
+	switch (menuopt) {
 	case 'A':
-		OMRunAsAdmin();
-		break;
-	case 'B':
-		delTmpFiles();
-		break;
-	case 'C':
-		duplicateINI();
-		break;
-	case 'D':
-		runBatchFiles();
-		break;
-	case 'E':
-		cleanupOM();
-		break;
-	case 'Z':
-		exit();
+		clearLogonInfo();
 		break;
 	}
+
+	cout << String(2, '\n');
 }
 
 int getSysInfo() {
@@ -282,7 +337,7 @@ string curDir() {
 }
 
 void exit() {
-	cout << string(2, '\n') << "Press any Key to Exit... ";
+	cout << string(1, '\n') << "Press any Key to Exit... ";
 	char a;
 	a = _getch();
 	exit(EXIT_SUCCESS);
@@ -294,7 +349,7 @@ void logOutput() {
 	cout << setw(20) << left << "WinDir           = " << left << WinDir << endl;
 	cout << setw(20) << left << "DataDir          = " << left << DataDir << endl;
 	cout << setw(20) << left << "PgmsDir          = " << left << PgmsDir << endl << endl;
-	cout << setw(20) << left << "ConnectThru      = " << left << ConnectThru << endl;
+	//cout << setw(20) << left << "ConnectThru      = " << left << ConnectThru << endl;
 	cout << setw(20) << left << "DatabaseName     = " << left << DatabaseName << endl;
 	cout << setw(20) << left << "DataSource       = " << left << DataSource << endl;
 	cout << setw(20) << left << "SQL_Build        = " << left << SQLbuild << endl << endl;
@@ -356,9 +411,6 @@ int getOmate32() {
 }
 
 int OMRunAsAdmin() {
-	// Output to console that .reg file is being written to folder in pgmsdir
-	// Still need to determine name of folder to reside in PgmsDir
-
 
 	string regPgmsDir = PgmsDir;
 	int strLength = regPgmsDir.length();
@@ -375,19 +427,8 @@ int OMRunAsAdmin() {
 		}
 	}
 
-
-	// Need to check if the directory exists first before creating it which uses the code below
-	/*
-	string OMInfoSuiteDir = PgmsDir + "\\OMInfoSuite";
-	char *updatedDir = new char[OMInfoSuiteDir.length() + 1];
-	strcpy(updatedDir, OMInfoSuiteDir.c_str());
-	mkdir(updatedDir);
-	*/
-
-	// Possibly change the .reg file to be saved in a folder in the Officemate PgmsDir??? that way it could be run manually at a later time or if errored.
 	fstream SetRunAsAdmin;
 	string filenamepath = curDir() + "\\SetRunAsAdmin.reg";
-	//string filenamepath = PgmsDir  +  "\\OMInfoSuite\\SetRunAsAdmin.reg";
 	SetRunAsAdmin.open(filenamepath, fstream::out);
 	SetRunAsAdmin << "Windows Registry Editor Version 5.00\n";
 	SetRunAsAdmin << " \n";
@@ -401,15 +442,27 @@ int OMRunAsAdmin() {
 
 	SetRunAsAdmin.close();
 
+	filenamepath = PgmsDir + "\\SetRunAsAdmin.reg";
+	SetRunAsAdmin.open(filenamepath, fstream::out);
+	SetRunAsAdmin << "Windows Registry Editor Version 5.00\n";
+	SetRunAsAdmin << " \n";
+	SetRunAsAdmin << "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers]\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\examwriter.exe\"=\"RUNASADMIN\"\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\homeoffice.exe\"=\"RUNASADMIN\"\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\login.exe\"=\"RUNASADMIN\"\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\logindotnet.exe\"=\"RUNASADMIN\"\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\omate.exe\"=\"RUNASADMIN\"\n";
+	SetRunAsAdmin << "\"" + regPgmsDir + "\\\\query.exe\"=\"RUNASADMIN\"\n";
 
-	/*
-	New Function ???
-	- set folder permissions for PgmsDir
-	- set file permissions for Omate32.ini in WinDir
+	cls();
+	header();
+	cout << endl;
+	cout << setw(10) << left << " Successfully created SetRunAsAdmin.reg..." << string(2, '\n');
+	cout << setw(10) << left << " Manually run SetRunAsAdmin.reg from " << PgmsDir << endl;
+	cout << string(2, '\n');
+	pause();
 
-	- checks EnableLinkedConnections.reg value and verifies it is set correctly
-	*/
-
+	SetRunAsAdmin.close();
 	return 0;
 }
 
@@ -427,7 +480,7 @@ int duplicateINI() {
 	vs.open(vspath, ios::in);
 	if (!vs.is_open()) {/*Code goes here that is executed if file note found in LocalAppData\virtualstore\Windows folder*/ }
 	else {
-		cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in AppData\\Local\\VirtualStore\\Windows" << endl;
+		cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in %AppData%\\Local\\VirtualStore\\Windows" << endl;
 		fileCount++;
 	}
 	vs.close();
@@ -437,7 +490,7 @@ int duplicateINI() {
 	up.open(uppath, ios::in);
 	if (!up.is_open()) {/*Code goes here that is executed if file note found in Userprofile\Windows folder*/}
 	else {
-		cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in Users Windows Folder" << endl;
+		cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in %userprofile%\\Windows Folder" << endl;
 		fileCount++;
 	}
 	up.close();
@@ -462,19 +515,43 @@ void delTmpFiles()
 
 void runBatchFiles() {
 	//Runs all ~Reg batch files located in PgmsDir
-}
 
-void cleanupOM() {
-	/*Cleanup OM installs to C:\Old Officemate Installations
-	 
+	cls();
+	header();
+	cout << endl;
+	cout << setw(10) << left << " Running all ~Reg .bat files in Officemate Directory" << string(2, '\n');
 
-	-- Current Batch
-	if not exist "C:\Old Officemate Installations" mkdir "C:\Old Officemate Installations" & 
-	if exist C:\Officemate move C:\Officemate "C:\Old Officemate Installations" & 
-	move C:\Windows\omate32.ini "C:\Old Officemate Installations" & 
-	if exist C:\Omate32 move C:\Omate32 "C:\Old Officemate Installations"
+	// ~RegAllOME.NetDLLs.bat
+	string batch1 = PgmsDir + "\\~RegAllOME.NetDLLs.bat";
+	if ((int)ShellExecuteA(NULL, "open", batch1.c_str(), NULL, NULL, SW_NORMAL) > 32) {
+		cout << setw(10) << left << " Running " << batch1 << endl;
+	}
 
-	*/
+	// ~RegAllOME_DLLs.bat
+	string batch2 = PgmsDir + "\\~RegAllOME_DLLs.bat";
+	if ((int)ShellExecuteA(NULL, "open", batch2.c_str(), NULL, NULL, SW_NORMAL) > 32) {
+		cout << setw(10) << left << " Running " << batch2 << endl;
+	}
+
+	// ~RegOME_DL_SysDLLs.bat
+	string batch3 = PgmsDir + "\\~RegOME_DL_SysDLLs.bat";
+	if ((int)ShellExecuteA(NULL, "open", batch3.c_str(), NULL, NULL, SW_NORMAL) > 32) {
+		cout << setw(10) << left << " Running " << batch3 << endl;
+	}
+
+	// ~RegOME_DLLs4Svr.bat
+	string batch4 = PgmsDir + "\\~RegOME_DLLs4Svr.bat";
+	if ((int)ShellExecuteA(NULL, "open", batch4.c_str(), NULL, NULL, SW_NORMAL) > 32) {
+		cout << setw(10) << left << " Running " << batch4 << endl;
+	}
+
+	// ~RegWinDLLs.bat
+	string batch5 = PgmsDir + "\\~RegWinDLLs.bat";
+	if ((int)ShellExecuteA(NULL, "open", batch5.c_str(), NULL, NULL, SW_NORMAL) > 32) {
+		cout << setw(10) << left << " Running " << batch5 << endl;
+	}
+	cout << endl;
+	pause();
 }
 
 void enableLinkedConnections() {
@@ -486,4 +563,190 @@ void enableLinkedConnections() {
 	[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
 	"EnableLinkedConnections"=dword:00000001
 	*/
+
+	fstream enableLinkedConnectionsReg;
+	string filenamepath = curDir() + "\\EnableLinkedConnections.reg";
+	enableLinkedConnectionsReg.open(filenamepath, fstream::out);
+	enableLinkedConnectionsReg << "Windows Registry Editor Version 5.00\n";
+	enableLinkedConnectionsReg << " \n";
+	enableLinkedConnectionsReg << "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System]\n\n";
+	enableLinkedConnectionsReg << "\"EnableLinkedConnections\" = dword:00000001";
+
+	enableLinkedConnectionsReg.close();
+
+	filenamepath = PgmsDir + "\\EnableLinkedConnections.reg";
+	enableLinkedConnectionsReg.open(filenamepath, fstream::out);
+	enableLinkedConnectionsReg << "Windows Registry Editor Version 5.00\n";
+	enableLinkedConnectionsReg << "\n";
+	enableLinkedConnectionsReg << "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System]\n\n";
+	enableLinkedConnectionsReg << "\"EnableLinkedConnections\"=dword:00000001";
+
+	enableLinkedConnectionsReg.close();
+
+	cls();
+	header();
+	cout << endl;
+	cout << setw(10) << left << " Successfully created EnableLinkedConnections.reg..." << string(2, '\n');
+	cout << setw(10) << left << " Manually run EnableLinkedConnections.reg from " << PgmsDir << endl;
+	cout << string(2, '\n');
+	pause();
 }
+
+void showSQLErrorMsg(unsigned int handleType, const SQLHANDLE& handle) {
+	//Function shows error message and state derived from preliminary function return message
+	SQLCHAR SQLState[1024];
+	SQLCHAR message[1024];
+
+	if (SQL_SUCCESS == SQLGetDiagRec(handleType, handle, 1, SQLState, NULL, message, 1024, NULL)) {
+		cout << left << setw(10) << "ODBC Driver Message: " << message << string(2, '\n');;
+		cout << left << setw(10) << "ODBC SQL State: " << SQLState << string(2, '\n');;
+	}
+}
+
+void OMUserLoginTest() {
+	// Connect to SQL database as OM_USER and then disconnect, and use SQL_ERROR info to show information
+	cls();
+	header();
+
+	SQLHANDLE SQLEnvHandle = NULL;
+	SQLHANDLE SQLConnectionHandle = NULL;
+	SQLCHAR retConString[1024];
+
+	string ConnectionString1 = "DRIVER={SQL Server Native Client 11.0}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=OM_USER;Pwd=OMSQL@2004;";
+	string ConnectionString2 = "DRIVER={SQL Server Native Client 11.0}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=SA;Pwd=OMateSQL@2007;";
+
+	if (SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &SQLEnvHandle) == SQL_ERROR) {
+	}
+	if (SQLSetEnvAttr(SQLEnvHandle, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0) == SQL_ERROR) {
+	}
+	if (SQLAllocHandle(SQL_HANDLE_DBC, SQLEnvHandle, &SQLConnectionHandle) == SQL_ERROR) {
+	}
+	if (SQLSetConnectAttr(SQLConnectionHandle, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0) == SQL_ERROR) {
+	}
+
+	cout << left << setw(40) << " Running OM_USER connection and login test: ";
+	
+	switch (SQLDriverConnect(SQLConnectionHandle, NULL, (SQLCHAR*)ConnectionString1.c_str(), SQL_NTS, retConString, 1024, NULL, SQL_DRIVER_NOPROMPT)) {
+	case SQL_SUCCESS:
+		cout << setw(35) << right << " Success - SQL_SUCESS" << string(2, '\n');;
+		break;
+	case SQL_SUCCESS_WITH_INFO:
+		cout << setw(35) << right << " Success - SQL_SUCCESS_WITH_INFO" << string(2, '\n');;
+		break;
+	case SQL_NO_DATA_FOUND:
+		cout << setw(35) << right << " Error - SQL_NO_DATA_FOUND" << string(2, '\n');;
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	case SQL_INVALID_HANDLE:
+		cout << setw(35) << right << " Error - SQL_INVALID_HANDLE" << string(2, '\n');;
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	case SQL_ERROR:
+		cout << setw(35) << right << " Error - SQL_ERROR" << string(2, '\n');
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	}
+
+	SQLDisconnect(SQLConnectionHandle);
+	SQLFreeHandle(SQL_HANDLE_DBC, SQLConnectionHandle);
+	SQLFreeHandle(SQL_HANDLE_ENV, SQLEnvHandle);
+
+	cout << endl << left << setw(40) << " Running SA connection and login test: ";
+
+	if (SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &SQLEnvHandle) == SQL_ERROR) {
+	}
+	if (SQLSetEnvAttr(SQLEnvHandle, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0) == SQL_ERROR) {
+	}
+	if (SQLAllocHandle(SQL_HANDLE_DBC, SQLEnvHandle, &SQLConnectionHandle) == SQL_ERROR) {
+	}
+	if (SQLSetConnectAttr(SQLConnectionHandle, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0) == SQL_ERROR) {
+	}
+
+	switch (SQLDriverConnect(SQLConnectionHandle, NULL, (SQLCHAR*)ConnectionString1.c_str(), SQL_NTS, retConString, 1024, NULL, SQL_DRIVER_NOPROMPT)) {
+	case SQL_SUCCESS:
+		cout << setw(39) << right << " Success - SQL_SUCESS" << string(2, '\n');;
+		break;
+	case SQL_SUCCESS_WITH_INFO:
+		cout << setw(39) << right << " Success - SQL_SUCCESS_WITH_INFO" << string(2, '\n');;
+		break;
+	case SQL_NO_DATA_FOUND:
+		cout << setw(35) << right << " Error - SQL_NO_DATA_FOUND" << string(2, '\n');;
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	case SQL_INVALID_HANDLE:
+		cout << setw(35) << right << " Error - SQL_INVALID_HANDLE" << string(2, '\n');;
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	case SQL_ERROR:
+		cout << setw(35) << right << " Error - SQL_ERROR" << string(2, '\n');
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	}
+
+	pause();
+}
+
+void clearLogonInfo() {
+	cls();
+	header();
+
+	cout << endl;
+	cout << left << setw(10) << " Truncating table dbo.user_logon_info: ";
+		
+	SQLHANDLE SQLEnvHandle = NULL;
+	SQLHANDLE SQLConnectionHandle = NULL;
+	SQLHANDLE SQLStatementHandle = NULL;
+	SQLCHAR retConString[1024];
+
+	string ConnectionString = "DRIVER={SQL Server Native Client 11.0}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=OM_USER;Pwd=OMSQL@2004;";
+
+	if (SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &SQLEnvHandle) == SQL_ERROR) {
+	}
+	if (SQLSetEnvAttr(SQLEnvHandle, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0) == SQL_ERROR) {
+	}
+	if (SQLAllocHandle(SQL_HANDLE_DBC, SQLEnvHandle, &SQLConnectionHandle) == SQL_ERROR) {
+	}
+	if (SQLSetConnectAttr(SQLConnectionHandle, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0) == SQL_ERROR) {
+	}
+
+	switch (SQLDriverConnect(SQLConnectionHandle, NULL, (SQLCHAR*)ConnectionString.c_str(), SQL_NTS, retConString, 1024, NULL, SQL_DRIVER_NOPROMPT)) {
+	case SQL_SUCCESS:
+		cout << "Success - SQL_SUCESS" << string(2, '\n');;
+		break;
+	case SQL_SUCCESS_WITH_INFO:
+		cout << "Success - SQL_SUCCESS_WITH_INFO" << string(2, '\n');;
+		break;
+	case SQL_NO_DATA_FOUND:
+		cout << "Error - SQL_NO_DATA_FOUND" << string(2, '\n');;
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	case SQL_INVALID_HANDLE:
+		cout << "Error - SQL_INVALID_HANDLE" << string(2, '\n');;
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	case SQL_ERROR:
+		cout << "Error - SQL_ERROR" << string(2, '\n');
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	}
+
+	if (SQLAllocHandle(SQL_HANDLE_STMT, SQLConnectionHandle, &SQLStatementHandle) == SQL_ERROR) {
+		cout << left << setw(10) << "Error allocating SQL Statement Handle" << endl;
+	}
+
+	char SQLQuery[] = "TRUNCATE TABLE OMSQLDB.dbo.user_logon_info";
+
+	if (SQLExecDirect(SQLStatementHandle, (SQLCHAR*)SQLQuery, SQL_NTS) == SQL_ERROR) {
+		cout << left << setw(10) << "Error executing SQL Statement Handle" << endl;
+		showSQLErrorMsg(SQL_HANDLE_STMT, SQLStatementHandle);
+	}
+		
+
+	SQLFreeHandle(SQL_HANDLE_STMT, SQLStatementHandle);
+	SQLDisconnect(SQLConnectionHandle);
+	SQLFreeHandle(SQL_HANDLE_DBC, SQLConnectionHandle);
+	SQLFreeHandle(SQL_HANDLE_ENV, SQLEnvHandle);
+
+	pause();
+}
+
