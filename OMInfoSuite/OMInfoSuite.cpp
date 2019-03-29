@@ -53,16 +53,9 @@ String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
 bool debugOn = false;
-String runningVersion = "v0.0.42";
+String runningVersion = "v0.0.50";
 
 bool run = true;
-
-int getOmate32();
-int OMRunAsAdmin();
-int duplicateINI();
-void delTmpFiles();
-void runBatchFiles();
-void enableLinkedConnections();
 
 void menu();
 void SQLmenu();
@@ -77,9 +70,17 @@ void resizeWindow();
 void exit();
 void logOutput();
 
+int getOmate32();
+int OMRunAsAdmin();
+int duplicateINI();
+void delTmpFiles();
+void runBatchFiles();
+void enableLinkedConnections();
+
 void showSQLErrorMsg(unsigned int handleType, const SQLHANDLE& handle);
 void OMUserLoginTest();
 void clearLogonInfo();
+void closeAllOpenExams();
 
 /*
 	FEATURES & NOTES TO ADD:
@@ -239,6 +240,7 @@ void SQLmenu() {
 	cout << setw(8) << left << "Option" << setw(15) << left << "Solutions";
 	cout << endl << "--------------------------------------------------------------------------------";
 	cout << endl << setw(x) << left << " A." << setw(40) << left << "Clear User Seat Count (ClearLogonInfo)";
+	cout << endl << setw(x) << left << " B." << setw(40) << left << "Close all open exams in ExamWriter";
 	cout << endl;
 	cout << endl << setw(x) << left << " Z." << setw(40) << left << "Exit" << endl << endl;
 
@@ -261,6 +263,11 @@ void SQLmenu() {
 	switch (menuopt) {
 	case 'A':
 		clearLogonInfo();
+		break;
+	case 'B':
+		closeAllOpenExams();
+		break;
+	case 'Z':
 		break;
 	}
 
@@ -550,6 +557,17 @@ void runBatchFiles() {
 	if ((int)ShellExecuteA(NULL, "open", batch5.c_str(), NULL, NULL, SW_NORMAL) > 32) {
 		cout << setw(10) << left << " Running " << batch5 << endl;
 	}
+
+	string batch6 = PgmsDir + "\\~OM_REG.bat";
+	if ((int)ShellExecuteA(NULL, "open", batch6.c_str(), NULL, NULL, SW_NORMAL) > 32) {
+		cout << setw(10) << left << " Running " << batch6 << endl;
+	}
+
+	string batch7 = PgmsDir + "\\~OMRegAll.bat";
+	if ((int)ShellExecuteA(NULL, "open", batch7.c_str(), NULL, NULL, SW_NORMAL) > 32) {
+		cout << setw(10) << left << " Running " << batch7 << endl;
+	}
+
 	cout << endl;
 	pause();
 }
@@ -612,8 +630,8 @@ void OMUserLoginTest() {
 	SQLHANDLE SQLConnectionHandle = NULL;
 	SQLCHAR retConString[1024];
 
-	string ConnectionString1 = "DRIVER={SQL Server Native Client 11.0}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=OM_USER;Pwd=OMSQL@2004;";
-	string ConnectionString2 = "DRIVER={SQL Server Native Client 11.0}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=SA;Pwd=OMateSQL@2007;";
+	string ConnectionString1 = "DRIVER={SQL Server}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=OM_USER;Pwd=OMSQL@2004;";
+	string ConnectionString2 = "DRIVER={SQL Server}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=SA;Pwd=OMateSQL@2007;";
 
 	if (SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &SQLEnvHandle) == SQL_ERROR) {
 	}
@@ -690,15 +708,15 @@ void clearLogonInfo() {
 	cls();
 	header();
 
-	cout << endl;
-	cout << left << setw(10) << " Truncating table dbo.user_logon_info: ";
-		
+	cout << "Datasource: " << DataSource << "           Database: " << DatabaseName << string(2, '\n');
+	cout << "Displaying table dbo.user_logon_info: ";
+
 	SQLHANDLE SQLEnvHandle = NULL;
 	SQLHANDLE SQLConnectionHandle = NULL;
 	SQLHANDLE SQLStatementHandle = NULL;
 	SQLCHAR retConString[1024];
 
-	string ConnectionString = "DRIVER={SQL Server Native Client 11.0}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=OM_USER;Pwd=OMSQL@2004;";
+	string ConnectionString = "DRIVER={SQL Server}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=OM_USER;Pwd=OMSQL@2004;";
 
 	if (SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &SQLEnvHandle) == SQL_ERROR) {
 	}
@@ -734,19 +752,175 @@ void clearLogonInfo() {
 		cout << left << setw(10) << "Error allocating SQL Statement Handle" << endl;
 	}
 
-	char SQLQuery[] = "TRUNCATE TABLE OMSQLDB.dbo.user_logon_info";
+	char SQLQuery[] = "SELECT logon_index, logon_machinename, convert(nvarchar(25),logon_datetime), App_Type FROM dbo.user_logon_info";
 
+	// Display table and logins
 	if (SQLExecDirect(SQLStatementHandle, (SQLCHAR*)SQLQuery, SQL_NTS) == SQL_ERROR) {
 		cout << left << setw(10) << "Error executing SQL Statement Handle" << endl;
 		showSQLErrorMsg(SQL_HANDLE_STMT, SQLStatementHandle);
 	}
-		
+	else
+	{
+		int logon_index;
+		char logon_machinename[25];
+		char logon_datetime[25];
+		char App_Type[25];
+
+		cout << setw(15) << left << "logon_index" << setw(25) << "logon_machinename" << setw(25) << left << "logon_datetime" << setw(6) << left << "App_Type" << string(2, '\n');
+		while (SQLFetch(SQLStatementHandle) == SQL_SUCCESS) {
+			SQLGetData(SQLStatementHandle, 1, SQL_C_DEFAULT, &logon_index, sizeof(logon_index) + 1, NULL);
+			SQLGetData(SQLStatementHandle, 2, SQL_C_DEFAULT, &logon_machinename, size(logon_machinename), NULL);
+			SQLGetData(SQLStatementHandle, 3, SQL_C_DEFAULT, &logon_datetime, size(logon_datetime), NULL);
+			SQLGetData(SQLStatementHandle, 4, SQL_C_DEFAULT, &App_Type, sizeof(App_Type), NULL);
+			cout << setw(15) << left << logon_index << setw(25) << logon_machinename << setw(25) << left << logon_datetime << setw(6) << left << App_Type << endl;
+		}
+	}
+	SQLFreeHandle(SQL_HANDLE_STMT, SQLStatementHandle);
+
+	char clearOpt = 'N';
+	cout << string(2, '\n');
+	cout << " Enter Y to clear Users Logged In, Z to exit: ";
+	cin >> clearOpt;
+	clearOpt = toupper(clearOpt);
+
+	if (clearOpt == 'Y') {
+		// Truncate table
+		char SQLQuery2[] = "TRUNCATE TABLE dbo.user_logon_info";
+
+		cout << endl;
+		cout << left << setw(10) << " Truncating table dbo.user_logon_info: ";
+
+		if (SQLAllocHandle(SQL_HANDLE_STMT, SQLConnectionHandle, &SQLStatementHandle) == SQL_ERROR) {
+			cout << left << setw(10) << "Error allocating SQL Statement Handle" << endl;
+		}
+
+		if (SQLExecDirect(SQLStatementHandle, (SQLCHAR*)SQLQuery2, SQL_NTS) == SQL_ERROR) {
+			cout << left << setw(10) << "Error executing SQL Statement Handle" << endl;
+			showSQLErrorMsg(SQL_HANDLE_STMT, SQLStatementHandle);
+		}
+		else {
+			cout << "Success - SQL_SUCESS" << endl;
+			clearLogonInfo();
+		}
+	}
+
+	if (clearOpt != 'Z' && clearOpt != 'Y') {
+		cout << endl << " Invalid character entered. Try again." << endl;
+		pause();
+		clearLogonInfo();
+	}
 
 	SQLFreeHandle(SQL_HANDLE_STMT, SQLStatementHandle);
 	SQLDisconnect(SQLConnectionHandle);
 	SQLFreeHandle(SQL_HANDLE_DBC, SQLConnectionHandle);
 	SQLFreeHandle(SQL_HANDLE_ENV, SQLEnvHandle);
 
-	pause();
+	if (clearOpt == 'Z') {
+		SQLmenu();
+	}
 }
 
+void closeAllOpenExams() {
+	cls();
+	header();
+
+	cout << "Datasource: " << DataSource << "           Database: " << DatabaseName << string(2, '\n');
+	cout << "Connecting to SQL Database: ";
+
+	SQLHANDLE SQLEnvHandle = NULL;
+	SQLHANDLE SQLConnectionHandle = NULL;
+	SQLHANDLE SQLStatementHandle = NULL;
+	SQLCHAR retConString[1024];
+	int count;
+
+	string ConnectionString = "DRIVER={SQL Server}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=OM_USER;Pwd=OMSQL@2004;";
+
+	if (SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &SQLEnvHandle) == SQL_ERROR) {
+	}
+	if (SQLSetEnvAttr(SQLEnvHandle, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0) == SQL_ERROR) {
+	}
+	if (SQLAllocHandle(SQL_HANDLE_DBC, SQLEnvHandle, &SQLConnectionHandle) == SQL_ERROR) {
+	}
+	if (SQLSetConnectAttr(SQLConnectionHandle, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0) == SQL_ERROR) {
+	}
+
+	switch (SQLDriverConnect(SQLConnectionHandle, NULL, (SQLCHAR*)ConnectionString.c_str(), SQL_NTS, retConString, 1024, NULL, SQL_DRIVER_NOPROMPT)) {
+	case SQL_SUCCESS:
+		cout << "Success - SQL_SUCESS" << string(2, '\n');;
+		break;
+	case SQL_SUCCESS_WITH_INFO:
+		cout << "Success - SQL_SUCCESS_WITH_INFO" << string(2, '\n');;
+		break;
+	case SQL_NO_DATA_FOUND:
+		cout << "Error - SQL_NO_DATA_FOUND" << string(2, '\n');;
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	case SQL_INVALID_HANDLE:
+		cout << "Error - SQL_INVALID_HANDLE" << string(2, '\n');;
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	case SQL_ERROR:
+		cout << "Error - SQL_ERROR" << string(2, '\n');
+		showSQLErrorMsg(SQL_HANDLE_DBC, SQLConnectionHandle);
+		break;
+	}
+
+	if (SQLAllocHandle(SQL_HANDLE_STMT, SQLConnectionHandle, &SQLStatementHandle) == SQL_ERROR) {
+		cout << left << setw(10) << "Error allocating SQL Statement Handle" << endl;
+	}
+
+	// Display the number of open exams 
+	char SQLQuery[] = "Select count(*) From dbo.EWExam Where closed = '';";
+
+	if (SQLExecDirect(SQLStatementHandle, (SQLCHAR*)SQLQuery, SQL_NTS) == SQL_ERROR) {
+		cout << left << setw(10) << "Error executing SQL Statement Handle" << endl;
+		showSQLErrorMsg(SQL_HANDLE_STMT, SQLStatementHandle);
+	}
+	else
+	{
+		while (SQLFetch(SQLStatementHandle) == SQL_SUCCESS) {
+			SQLGetData(SQLStatementHandle, 1, SQL_C_DEFAULT, &count, sizeof(count) + 1, NULL);
+		}
+		cout << setw(15) << left << "Number of open exams: " << right << setw(4) << count << endl;
+	}
+	SQLFreeHandle(SQL_HANDLE_STMT, SQLStatementHandle);
+
+	char clearOpt = 'N';
+	cout << string(2, '\n');
+	cout << "Enter Y to close all open exams, Z to exit: ";
+	cin >> clearOpt;
+	clearOpt = toupper(clearOpt);
+
+	// Close all open exams
+	if (clearOpt == 'Y') {
+		cls();
+		header();
+
+		cout << endl << right << setw(20) << "Closing all open exams: ";
+
+		char SQLQuery1[] = "Update dbo.EWExam Set closed='C' Where closed='';";
+
+		if (SQLAllocHandle(SQL_HANDLE_STMT, SQLConnectionHandle, &SQLStatementHandle) == SQL_ERROR) {
+			cout << left << setw(10) << "Error allocating SQL Statement Handle" << endl;
+		}
+
+		if (SQLExecDirect(SQLStatementHandle, (SQLCHAR*)SQLQuery1, SQL_NTS) == SQL_ERROR) {
+			cout << left << setw(10) << "Error executing SQL Statement Handle" << endl;
+			showSQLErrorMsg(SQL_HANDLE_STMT, SQLStatementHandle);
+		}
+		else
+		{
+			cout << right << setw(20) << "Successfully closed " << count << " open exams.";
+		}
+		pause();
+	}
+
+	if (clearOpt != 'Z' && clearOpt != 'Y') {
+		cout << endl << " Invalid character entered. Try again." << endl;
+		pause();
+		closeAllOpenExams();
+	}
+	if (clearOpt == 'Z') {
+		SQLmenu();
+	}
+}
