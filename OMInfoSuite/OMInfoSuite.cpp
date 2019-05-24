@@ -4,7 +4,6 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
-#include <atlstr.h>
 #include <Shlobj.h>
 #include <Windows.h>
 #include <stdlib.h>
@@ -30,20 +29,20 @@ typedef std::wstring String;
 #endif
 
 //System Variables
-TCHAR wWinDir[80]; String WinDir;
-TCHAR wDataDir[80]; String DataDir;
-TCHAR wPgmsDir[80]; String PgmsDir;
+TCHAR wWinDir[255]; String WinDir;
+TCHAR wDataDir[255]; String DataDir;
+TCHAR wPgmsDir[255]; String PgmsDir;
 
 //ADOConnection Variables
-TCHAR wConnectThru[80]; String ConnectThru;
-TCHAR wDatabaseName[80]; String DatabaseName;
-TCHAR wDataSource[80]; String DataSource;
+TCHAR wConnectThru[255]; String ConnectThru;
+TCHAR wDatabaseName[255]; String DatabaseName;
+TCHAR wDataSource[255]; String DataSource;
 
 //INSTALL Variables
-TCHAR wSQLbuild[80]; String SQLbuild;
-TCHAR wInstalledVersion[80]; String InstalledVersion;
-TCHAR wBuild[80]; String Build;
-TCHAR wServicePack[80]; String ServicePack;
+TCHAR wSQLbuild[255]; String SQLbuild;
+TCHAR wInstalledVersion[255]; String InstalledVersion;
+TCHAR wBuild[255]; String Build;
+TCHAR wServicePack[255]; String ServicePack;
 
 //Windows Specific Variables
 String rUsername; //USERNAME
@@ -53,7 +52,7 @@ String rHostname; //COMPUTERNAME
 String rSystemRoot; //SYSTEMROOT 
 
 bool debugOn = false;
-String runningVersion = "v0.0.50";
+String runningVersion = "v0.0.52";
 
 bool run = true;
 
@@ -83,7 +82,7 @@ void clearLogonInfo();
 void closeAllOpenExams();
 
 /*
-	FEATURES & NOTES TO ADD:
+  FEATURES & NOTES TO ADD:
 
 - set folder permissions for PgmsDir
 - set file permissions for Omate32.ini in WinDir
@@ -268,6 +267,7 @@ void SQLmenu() {
 		closeAllOpenExams();
 		break;
 	case 'Z':
+		main();
 		break;
 	}
 
@@ -487,7 +487,7 @@ int duplicateINI() {
 	vs.open(vspath, ios::in);
 	if (!vs.is_open()) {/*Code goes here that is executed if file note found in LocalAppData\virtualstore\Windows folder*/ }
 	else {
-		cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in %AppData%\\Local\\VirtualStore\\Windows" << endl;
+		cout << setw(10) << left << " WARNING: Duplicate Omate32.ini found in %LocalAppData%\\Local\\VirtualStore\\Windows" << endl;
 		fileCount++;
 	}
 	vs.close();
@@ -831,7 +831,7 @@ void closeAllOpenExams() {
 	SQLHANDLE SQLConnectionHandle = NULL;
 	SQLHANDLE SQLStatementHandle = NULL;
 	SQLCHAR retConString[1024];
-	int count;
+	int count = 0;
 
 	string ConnectionString = "DRIVER={SQL Server}; SERVER=" + DataSource + "; DATABASE=" + DatabaseName + ";Uid=OM_USER;Pwd=OMSQL@2004;";
 
